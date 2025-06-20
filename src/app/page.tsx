@@ -19,7 +19,6 @@ export default function LoginPage() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action="/admin">
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -39,14 +38,13 @@ export default function LoginPage() {
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Button type="submit" className="w-full">
-                Login
+              <Button asChild className="w-full">
+                <Link href="/admin">Login</Link>
               </Button>
               <Button variant="outline" className="w-full" type="button">
                 Login with SSO
               </Button>
             </div>
-          </form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="#" className="underline">
