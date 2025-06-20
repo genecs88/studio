@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'EnvKey Manager',
-  description: 'Manage your environment keys with ease and security.',
+  title: 'Tech Support Tools',
+  description: 'A suite of tools for tech support.',
 };
 
 export default function RootLayout({

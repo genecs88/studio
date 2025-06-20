@@ -8,7 +8,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">Admin Management</h1>
-        <p className="text-muted-foreground">Manage your organizations, API keys, and environments.</p>
+        <p className="text-muted-foreground">Access various tools and utilities for tech support.</p>
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">

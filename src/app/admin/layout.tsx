@@ -15,7 +15,7 @@ import {
   Home,
   Settings,
   LogOut,
-  KeyRound,
+  Wrench,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -29,9 +29,9 @@ export default function AdminLayout({
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary/10">
-                <KeyRound className="w-6 h-6 text-primary" />
+                <Wrench className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-xl font-headline font-semibold">EnvKey Manager</h1>
+            <h1 className="text-xl font-headline font-semibold">Tech Support Tools</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -59,7 +59,7 @@ export default function AdminLayout({
             <div className="flex flex-col">
               <span className="text-sm font-semibold">Admin User</span>
               <span className="text-xs text-muted-foreground">
-                admin@envkey.dev
+                admin@techsupport.dev
               </span>
             </div>
           </div>

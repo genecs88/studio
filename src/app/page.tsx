@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { KeyRound } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 
 export default function LoginPage() {
   return (
@@ -11,11 +11,11 @@ export default function LoginPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="space-y-2 text-center">
             <div className="inline-block bg-primary/10 p-3 rounded-full mx-auto">
-                <KeyRound className="w-8 h-8 text-primary" />
+                <Wrench className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-headline">EnvKey Manager</CardTitle>
+            <CardTitle className="text-2xl font-headline">Tech Support Tools</CardTitle>
             <CardDescription>
-                Enter your credentials to access your secure environment
+                Login to access the support toolkit.
             </CardDescription>
         </CardHeader>
         <CardContent>
