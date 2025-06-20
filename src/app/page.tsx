@@ -19,7 +19,7 @@ export default function LoginPage() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid gap-4">
+            <div className="grid gap-4" suppressHydrationWarning>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -27,6 +27,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="m@example.com"
                   required
+                  suppressHydrationWarning
                 />
               </div>
               <div className="grid gap-2">
@@ -36,12 +37,12 @@ export default function LoginPage() {
                     Forgot your password?
                   </Link>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" required suppressHydrationWarning />
               </div>
               <Button asChild className="w-full">
                 <Link href="/admin">Login</Link>
               </Button>
-              <Button variant="outline" className="w-full" type="button">
+              <Button variant="outline" className="w-full" type="button" suppressHydrationWarning>
                 Login with SSO
               </Button>
             </div>
