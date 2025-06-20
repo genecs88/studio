@@ -1,59 +1,32 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Wrench } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OrganizationsTab from "@/components/admin/organizations-tab";
+import ApiKeysTab from "@/components/admin/api-keys-tab";
+import EnvironmentsTab from "@/components/admin/environments-tab";
 
-export default function LoginPage() {
+export default function AdminDashboard() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="mx-auto max-w-sm w-full">
-        <CardHeader className="space-y-2 text-center">
-            <div className="inline-block bg-primary/10 p-3 rounded-full mx-auto">
-                <Wrench className="w-8 h-8 text-primary" />
-            </div>
-            <CardTitle className="text-2xl font-headline">Tech Support Tools</CardTitle>
-            <CardDescription>
-                Login to access the support toolkit.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="grid gap-4" suppressHydrationWarning>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  suppressHydrationWarning
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="#" className="ml-auto inline-block text-sm underline">
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input id="password" type="password" required suppressHydrationWarning />
-              </div>
-              <Button asChild className="w-full">
-                <Link href="/admin">Login</Link>
-              </Button>
-              <Button variant="outline" className="w-full" type="button" suppressHydrationWarning>
-                Login with SSO
-              </Button>
-            </div>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="#" className="underline">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-3xl font-bold font-headline tracking-tight">Admin Management</h1>
+        <p className="text-muted-foreground">Access various tools and utilities for tech support.</p>
+      </div>
+
+      <Tabs defaultValue="api-keys" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+          <TabsTrigger value="environments">Environments</TabsTrigger>
+        </TabsList>
+        <TabsContent value="organizations">
+            <OrganizationsTab />
+        </TabsContent>
+        <TabsContent value="api-keys">
+            <ApiKeysTab />
+        </TabsContent>
+        <TabsContent value="environments">
+            <EnvironmentsTab />
+        </TabsContent>
+      </Tabs>
     </div>
-  );
+  )
 }
