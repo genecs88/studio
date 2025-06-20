@@ -20,6 +20,13 @@ export type Environment = {
   url: string;
 };
 
+export type OrgPath = {
+  id: string;
+  path: string;
+  organizationId: string;
+  createdAt: string;
+};
+
 export const organizations: Organization[] = [
   {
     id: "org_1",
@@ -51,4 +58,25 @@ export const apiKeys: ApiKey[] = [
 
 export const environments: Environment[] = [
   { id: "env_1", name: "external.radpair.com", url: "https://external.radpair.com" },
+];
+
+export const orgPaths: OrgPath[] = [
+  {
+    id: "path_1",
+    path: "dept1,regionA,groupX",
+    organizationId: "org_1",
+    createdAt: "2023-04-01",
+  },
+  {
+    id: "path_2",
+    path: "dept2,regionB,groupY",
+    organizationId: "org_1",
+    createdAt: "2023-04-02",
+  },
+  {
+    id: "path_3",
+    path: "finance,us-east,team1",
+    organizationId: "org_2",
+    createdAt: "2023-04-05",
+  },
 ];
