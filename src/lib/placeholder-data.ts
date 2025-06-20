@@ -1,6 +1,8 @@
 export type Organization = {
   id: string;
   name: string;
+  environmentId: string;
+  patientIdentifiers: { key: string; value: string }[];
   createdAt: string;
 };
 
@@ -18,9 +20,27 @@ export type Environment = {
 };
 
 export const organizations: Organization[] = [
-  { id: "org_1", name: "Acme Inc.", createdAt: "2023-01-15" },
-  { id: "org_2", name: "Startup LLC", createdAt: "2023-02-20" },
-  { id: "org_3", name: "Innovate Corp", createdAt: "2023-03-10" },
+  {
+    id: "org_1",
+    name: "Acme Inc.",
+    environmentId: "env_1",
+    patientIdentifiers: [{ key: "MRN", value: "medical_record_number" }],
+    createdAt: "2023-01-15",
+  },
+  {
+    id: "org_2",
+    name: "Startup LLC",
+    environmentId: "env_1",
+    patientIdentifiers: [{ key: "PatientID", value: "patient_identifier" }],
+    createdAt: "2023-02-20",
+  },
+  {
+    id: "org_3",
+    name: "Innovate Corp",
+    environmentId: "env_1",
+    patientIdentifiers: [],
+    createdAt: "2023-03-10",
+  },
 ];
 
 export const apiKeys: ApiKey[] = [

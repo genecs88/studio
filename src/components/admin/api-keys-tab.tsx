@@ -29,6 +29,8 @@ import { apiKeys, type ApiKey } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import GenerateApiKeyDialog from "./generate-api-key-dialog";
 
 function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
     const [isVisible, setIsVisible] = useState(false);
@@ -94,45 +96,50 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
 
 export default function ApiKeysTab() {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-            <div>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>
-                    Manage and generate API keys for different environments.
-                </CardDescription>
-            </div>
-            <Button size="sm" className="gap-1">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Generate Key
-                </span>
-            </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead className="w-[450px]">Key</TableHead>
-                <TableHead>Organization</TableHead>
-                <TableHead>Environment</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>
-                    <span className="sr-only">Actions</span>
-                </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {apiKeys.map((key) => (
-                    <ApiKeyRow key={key.id} apiKey={key} />
-                ))}
-            </TableBody>
-            </Table>
-        </div>
-      </CardContent>
-    </Card>
+    <Dialog>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+              <div>
+                  <CardTitle>API Keys</CardTitle>
+                  <CardDescription>
+                      Manage and generate API keys for different environments.
+                  </CardDescription>
+              </div>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1">
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Generate Key
+                    </span>
+                </Button>
+              </DialogTrigger>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+              <Table>
+              <TableHeader>
+                  <TableRow>
+                  <TableHead className="w-[450px]">Key</TableHead>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Environment</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>
+                      <span className="sr-only">Actions</span>
+                  </TableHead>
+                  </TableRow>
+              </TableHeader>
+              <TableBody>
+                  {apiKeys.map((key) => (
+                      <ApiKeyRow key={key.id} apiKey={key} />
+                  ))}
+              </TableBody>
+              </Table>
+          </div>
+        </CardContent>
+      </Card>
+      <GenerateApiKeyDialog />
+    </Dialog>
   );
 }
