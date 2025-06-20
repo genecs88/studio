@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import GenerateApiKeyDialog from "./generate-api-key-dialog";
+import AddApiKeyDialog from "./generate-api-key-dialog";
 
 function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
     const [isVisible, setIsVisible] = useState(false);
@@ -103,14 +103,14 @@ export default function ApiKeysTab() {
               <div>
                   <CardTitle>API Keys</CardTitle>
                   <CardDescription>
-                      Manage and generate API keys for different environments.
+                      Manage API keys for different environments.
                   </CardDescription>
               </div>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1">
                     <PlusCircle className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Generate Key
+                    Add API Key
                     </span>
                 </Button>
               </DialogTrigger>
@@ -139,7 +139,7 @@ export default function ApiKeysTab() {
           </div>
         </CardContent>
       </Card>
-      <GenerateApiKeyDialog />
+      <AddApiKeyDialog />
     </Dialog>
   );
 }

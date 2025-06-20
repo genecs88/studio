@@ -10,6 +10,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -37,9 +38,10 @@ import {
 const apiKeySchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
   organizationId: z.string().min(1, "Organization is required"),
+  key: z.string().min(1, "API Key is required"),
 });
 
-export default function GenerateApiKeyDialog() {
+export default function AddApiKeyDialog() {
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
@@ -49,6 +51,7 @@ export default function GenerateApiKeyDialog() {
     defaultValues: {
       environmentId: "",
       organizationId: "",
+      key: "",
     },
   });
 
@@ -68,7 +71,7 @@ export default function GenerateApiKeyDialog() {
 
   const onSubmit = (values: z.infer<typeof apiKeySchema>) => {
     console.log(values);
-    alert("API Key generated (see console for data).");
+    alert("API Key added (see console for data).");
     form.reset();
     setFilteredOrganizations([]);
   };
@@ -76,9 +79,9 @@ export default function GenerateApiKeyDialog() {
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Generate API Key</DialogTitle>
+        <DialogTitle>Add API Key</DialogTitle>
         <DialogDescription>
-          Select an environment and organization to generate a new API key.
+          Select an environment and organization, then enter the API key.
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
@@ -146,13 +149,27 @@ export default function GenerateApiKeyDialog() {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="key"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>API Key</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter API Key" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="secondary">
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Generate Key</Button>
+            <Button type="submit">Add Key</Button>
           </DialogFooter>
         </form>
       </Form>
