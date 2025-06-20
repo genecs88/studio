@@ -17,6 +17,7 @@ export type ApiKey = {
 export type Environment = {
   id: string;
   name: string;
+  url: string;
 };
 
 export const organizations: Organization[] = [
@@ -49,5 +50,5 @@ export const apiKeys: ApiKey[] = [
 ];
 
 export const environments: Environment[] = [
-  { id: "env_1", name: "external.radpair.com" },
+  { id: "env_1", name: "external.radpair.com", url: "https://external.radpair.com" },
 ];
