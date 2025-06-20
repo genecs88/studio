@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Cloud, Cog, MoreHorizontal, PlusCircle, Server } from "lucide-react";
+import { Globe, MoreHorizontal, PlusCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,16 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { environments, type Environment } from "@/lib/placeholder-data";
 
 const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
-    switch (name) {
-        case "Production":
-            return <Cloud className="h-5 w-5 text-red-400" />;
-        case "Staging":
-            return <Server className="h-5 w-5 text-yellow-400" />;
-        case "Development":
-            return <Cog className="h-5 w-5 text-green-400" />;
-        default:
-            return null;
-    }
+    return <Globe className="h-5 w-5 text-muted-foreground" />;
 }
 
 

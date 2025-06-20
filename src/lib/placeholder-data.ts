@@ -8,13 +8,13 @@ export type ApiKey = {
   id: string;
   key: string;
   organization: string;
-  environment: "Production" | "Staging" | "Development";
+  environment: string;
   createdAt: string;
 };
 
 export type Environment = {
   id: string;
-  name: "Production" | "Staging" | "Development";
+  name: string;
 };
 
 export const organizations: Organization[] = [
@@ -24,14 +24,10 @@ export const organizations: Organization[] = [
 ];
 
 export const apiKeys: ApiKey[] = [
-  { id: "key_1", key: "ek_prod_xxxxxxxxxxxxxxxxxxxx1234", organization: "Acme Inc.", environment: "Production", createdAt: "2023-01-16" },
-  { id: "key_2", key: "ek_dev_xxxxxxxxxxxxxxxxxxxxx5678", organization: "Acme Inc.", environment: "Development", createdAt: "2023-01-16" },
-  { id: "key_3", key: "ek_prod_xxxxxxxxxxxxxxxxxxxxx90ab", organization: "Startup LLC", environment: "Production", createdAt: "2023-02-21" },
-  { id: "key_4", key: "ek_stag_xxxxxxxxxxxxxxxxxxxxx_cdef", organization: "Innovate Corp", environment: "Staging", createdAt: "2023-03-11" },
+  { id: "key_1", key: "ek_ext_xxxxxxxxxxxxxxxxxxxx1234", organization: "Acme Inc.", environment: "external.radpair.com", createdAt: "2023-01-16" },
+  { id: "key_2", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx5678", organization: "Startup LLC", environment: "external.radpair.com", createdAt: "2023-02-21" },
 ];
 
 export const environments: Environment[] = [
-  { id: "env_1", name: "Production" },
-  { id: "env_2", name: "Staging" },
-  { id: "env_3", name: "Development" },
+  { id: "env_1", name: "external.radpair.com" },
 ];
