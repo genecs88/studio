@@ -1,7 +1,7 @@
 
 import React from "react";
 
-export default function AdminLayout({
+export default function AdminManagementRedirectLayout({
   children,
 }: {
   children: React.ReactNode;
