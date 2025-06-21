@@ -174,13 +174,7 @@ export default function TransferOwnershipPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Request Configuration</CardTitle>
-          <CardDescription>
-            Select the parameters to build your request.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-6 space-y-4">
             <div>
                 <Label className="font-semibold">Environment</Label>
                 <RadioGroup
