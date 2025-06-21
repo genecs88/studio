@@ -101,16 +101,16 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
 
   return (
     <>
-      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Org Paths</CardTitle>
-                <CardDescription>
-                  Manage all registered organization paths.
-                </CardDescription>
-              </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Org Paths</CardTitle>
+              <CardDescription>
+                Manage all registered organization paths.
+              </CardDescription>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
@@ -119,62 +119,63 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
                   </span>
                 </Button>
               </DialogTrigger>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Path</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orgPaths.map((path) => (
-                  <TableRow key={path.id}>
-                    <TableCell className="font-medium">
-                      {getOrganizationName(path.organizationId)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="font-mono">
-                        {path.path}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{path.createdAt}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
+              <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} organizations={organizations} environments={environments} />
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Organization</TableHead>
+                <TableHead>Path</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orgPaths.map((path) => (
+                <TableRow key={path.id}>
+                  <TableCell className="font-medium">
+                    {getOrganizationName(path.organizationId)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-mono">
+                      {path.path}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{path.createdAt}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
 
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleEditClick(path)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(path)}>
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} organizations={organizations} environments={environments} />
-      </Dialog>
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleEditClick(path)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(path)}>
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
       {selectedPath && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
             <EditOrgPathDialog 

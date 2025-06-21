@@ -102,16 +102,16 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
 
   return (
     <>
-      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Organizations</CardTitle>
-                <CardDescription>
-                  Manage all registered organizations.
-                </CardDescription>
-              </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Organizations</CardTitle>
+              <CardDescription>
+                Manage all registered organizations.
+              </CardDescription>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
@@ -120,59 +120,60 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
                   </span>
                 </Button>
               </DialogTrigger>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Environment</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+              <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} environments={environments} />
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Environment</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {organizations.map((org) => (
+                <TableRow key={org.id}>
+                  <TableCell className="font-medium">{org.name}</TableCell>
+                  <TableCell>{getEnvironmentName(org.environmentId)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{org.id}</Badge>
+                  </TableCell>
+                  <TableCell>{org.createdAt}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleEditClick(org)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(org)}>
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {organizations.map((org) => (
-                  <TableRow key={org.id}>
-                    <TableCell className="font-medium">{org.name}</TableCell>
-                    <TableCell>{getEnvironmentName(org.environmentId)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{org.id}</Badge>
-                    </TableCell>
-                    <TableCell>{org.createdAt}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleEditClick(org)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(org)}>
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} environments={environments} />
-      </Dialog>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
       {selectedOrg && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
           <EditOrganizationDialog 

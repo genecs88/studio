@@ -100,16 +100,16 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments 
 
   return (
     <>
-      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>API Actions</CardTitle>
-                <CardDescription>
-                  Manage API action key-value pairs for environments.
-                </CardDescription>
-              </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>API Actions</CardTitle>
+              <CardDescription>
+                Manage API action key-value pairs for environments.
+              </CardDescription>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
@@ -118,61 +118,62 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments 
                   </span>
                 </Button>
               </DialogTrigger>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Key</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Environment</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+              <AddApiActionDialog onApiActionAdded={handleAddApiAction} environments={environments} />
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Key</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Environment</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {apiActions.map((action) => (
+                <TableRow key={action.id}>
+                  <TableCell className="font-medium">{action.key}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-mono">
+                      {action.value}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{getEnvironmentName(action.environmentId)}</TableCell>
+                  <TableCell>{action.createdAt}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleEditClick(action)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(action)}>
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {apiActions.map((action) => (
-                  <TableRow key={action.id}>
-                    <TableCell className="font-medium">{action.key}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="font-mono">
-                        {action.value}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{getEnvironmentName(action.environmentId)}</TableCell>
-                    <TableCell>{action.createdAt}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleEditClick(action)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(action)}>
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <AddApiActionDialog onApiActionAdded={handleAddApiAction} environments={environments} />
-      </Dialog>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
       {selectedAction && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
             <EditApiActionDialog 

@@ -185,16 +185,16 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
 
   return (
     <>
-      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-                <div>
-                    <CardTitle>API Keys</CardTitle>
-                    <CardDescription>
-                        Manage API keys for different environments.
-                    </CardDescription>
-                </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+              <div>
+                  <CardTitle>API Keys</CardTitle>
+                  <CardDescription>
+                      Manage API keys for different environments.
+                  </CardDescription>
+              </div>
+              <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="gap-1">
                       <PlusCircle className="h-3.5 w-3.5" />
@@ -203,33 +203,33 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
                       </span>
                   </Button>
                 </DialogTrigger>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead className="w-[450px]">Key</TableHead>
-                    <TableHead>Organization</TableHead>
-                    <TableHead>Environment</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead>
-                        <span className="sr-only">Actions</span>
-                    </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {apiKeys.map((key) => (
-                        <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} onEdit={handleEditClick} />
-                    ))}
-                </TableBody>
-                </Table>
-            </div>
-          </CardContent>
-        </Card>
-        <AddApiKeyDialog onApiKeyAdded={handleAddApiKey} organizations={organizations} environments={environments} />
-      </Dialog>
+                <AddApiKeyDialog onApiKeyAdded={handleAddApiKey} organizations={organizations} environments={environments} />
+              </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+              <Table>
+              <TableHeader>
+                  <TableRow>
+                  <TableHead className="w-[450px]">Key</TableHead>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Environment</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>
+                      <span className="sr-only">Actions</span>
+                  </TableHead>
+                  </TableRow>
+              </TableHeader>
+              <TableBody>
+                  {apiKeys.map((key) => (
+                      <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} onEdit={handleEditClick} />
+                  ))}
+              </TableBody>
+              </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {selectedApiKey && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
