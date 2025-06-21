@@ -61,12 +61,26 @@ export const organizations: Organization[] = [
     ],
     createdAt: "2023-03-10",
   },
+  {
+    id: "org_4",
+    name: "EugeneDemo",
+    environmentId: "env_1",
+    studyIdentifiers: [{ key: "Site ID", value: "site_ID" }],
+    createdAt: "2024-06-01",
+  },
 ];
 
 export const apiKeys: ApiKey[] = [
   { id: "key_1", key: "ek_ext_xxxxxxxxxxxxxxxxxxxx1234", organization: "Acme Inc.", environment: "external.radpair.com", createdAt: "2023-01-16" },
   { id: "key_2", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx5678", organization: "Startup LLC", environment: "external.radpair.com", createdAt: "2023-02-21" },
   { id: "key_3", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx9012", organization: "Innovate Corp", environment: "external.radpair.com", createdAt: "2023-03-11" },
+  {
+    id: "key_4",
+    key: "rsk_x4JRnF9s5neZf0X9KzRQWj3yDCTMuqLv81VJ9Scxa0t",
+    organization: "EugeneDemo",
+    environment: "external.radpair.com",
+    createdAt: "2024-06-01"
+  },
 ];
 
 export const environments: Environment[] = [
