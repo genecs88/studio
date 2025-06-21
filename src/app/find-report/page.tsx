@@ -229,18 +229,11 @@ export default function FindReportPage() {
                 />
             </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start gap-2">
+        <CardFooter>
             <div className="flex gap-2">
                 <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
                 <Button onClick={handleReset} variant="outline">Reset</Button>
             </div>
-            {constructedPostUrl && (
-                <div className="w-full p-2 mt-2 rounded-md bg-muted">
-                    <p className="text-sm font-mono text-muted-foreground break-all">
-                        {constructedPostUrl}
-                    </p>
-                </div>
-            )}
         </CardFooter>
       </Card>
       
@@ -304,7 +297,14 @@ export default function FindReportPage() {
             {isLoading ? 'Finding...' : 'FIND'}
         </Button>
       </div>
-
+      
+      {constructedPostUrl && (
+        <div className="w-full p-2 mt-4 rounded-md bg-muted">
+            <p className="text-sm font-mono text-muted-foreground break-all">
+                {constructedPostUrl}
+            </p>
+        </div>
+      )}
     </div>
   );
 }
