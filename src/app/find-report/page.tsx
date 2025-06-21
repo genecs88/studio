@@ -21,10 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FindReportPage() {
   const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
@@ -168,69 +165,54 @@ export default function FindReportPage() {
             Select the parameters to build your request.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6">
-            <div className="grid md:grid-cols-3 gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="environment">Environment</Label>
-                    <Select value={selectedEnvironment} onValueChange={handleEnvironmentChange}>
-                    <SelectTrigger id="environment">
-                        <SelectValue placeholder="Select Environment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {environments.map((env) => (
-                        <SelectItem key={env.id} value={env.id}>
-                            {env.name}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="organization">Organization</Label>
-                    <Select value={selectedOrganization} onValueChange={handleOrganizationChange} disabled={!selectedEnvironment}>
-                    <SelectTrigger id="organization">
-                        <SelectValue placeholder="Select Organization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filteredOrganizations.map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                            {org.name}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="org-path">Org Path (Optional)</Label>
-                    <Select value={selectedOrgPath} onValueChange={setSelectedOrgPath} disabled={!selectedOrganization}>
-                    <SelectTrigger id="org-path">
-                        <SelectValue placeholder="Select Org Path" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filteredOrgPaths.map((path) => (
-                        <SelectItem key={path.id} value={path.id}>
-                            {path.path}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                </div>
-            </div>
-          
-            <Separator />
+        <CardContent className="p-4">
+            <div className="grid md:grid-cols-4 gap-4">
+                <Select value={selectedEnvironment} onValueChange={handleEnvironmentChange}>
+                  <SelectTrigger id="environment">
+                      <SelectValue placeholder="Select Environment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {environments.map((env) => (
+                      <SelectItem key={env.id} value={env.id}>
+                          {env.name}
+                      </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedOrganization} onValueChange={handleOrganizationChange} disabled={!selectedEnvironment}>
+                  <SelectTrigger id="organization">
+                      <SelectValue placeholder="Select Organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {filteredOrganizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                      </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedOrgPath} onValueChange={setSelectedOrgPath} disabled={!selectedOrganization}>
+                  <SelectTrigger id="org-path">
+                      <SelectValue placeholder="Select Org Path" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {filteredOrgPaths.map((path) => (
+                      <SelectItem key={path.id} value={path.id}>
+                          {path.path}
+                      </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
 
-            <div className="grid gap-4">
-                <h3 className="text-lg font-medium">Payload Details</h3>
-                <div className="grid gap-2">
-                    <Label htmlFor="accession_number">Accession Number</Label>
-                    <Input
-                        id="accession_number"
-                        value={accessionNumber}
-                        onChange={(e) => setAccessionNumber(e.target.value)}
-                    />
-                </div>
+                <Input
+                    id="accession_number"
+                    placeholder="Accession Number"
+                    value={accessionNumber}
+                    onChange={(e) => setAccessionNumber(e.target.value)}
+                />
             </div>
-            
         </CardContent>
         <CardFooter className="justify-start gap-2">
             <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
