@@ -38,6 +38,7 @@ export default function RootLayout({
     if (pathname === '/') return 'Dashboard';
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
+    if (pathname === '/fr2') return 'FR2';
     return 'Tech Support Tools';
   }
 
@@ -86,6 +87,14 @@ export default function RootLayout({
                       <Link href="/find-report">
                         <Search />
                         Find Report
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/fr2'}>
+                      <Link href="/fr2">
+                        <Search />
+                        FR2
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
