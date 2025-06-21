@@ -5,6 +5,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import {
   SidebarProvider,
   Sidebar,
@@ -36,7 +37,8 @@ export default function RootLayout({
   // In a real app, you'd handle this more dynamically.
   const getPageTitle = () => {
     if (pathname === '/find-report') return 'Find Report';
-    return 'Admin Management';
+    if (pathname === '/' || pathname.startsWith('/admin')) return 'Admin Management';
+    return 'Tech Support Tools';
   }
 
   return (
@@ -63,19 +65,23 @@ export default function RootLayout({
             <SidebarContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton href="/" isActive={pathname === '/' || pathname.startsWith('/admin')}>
-                    <Home />
-                    Admin Dashboard
+                  <SidebarMenuButton asChild isActive={pathname === '/' || pathname.startsWith('/admin')}>
+                    <Link href="/">
+                      <Home />
+                      Admin Dashboard
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                  <SidebarMenuButton href="/find-report" isActive={pathname === '/find-report'}>
-                    <Search />
-                    Find Report
+                  <SidebarMenuButton asChild isActive={pathname === '/find-report'}>
+                    <Link href="/find-report">
+                      <Search />
+                      Find Report
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton href="#">
+                  <SidebarMenuButton>
                     <Settings />
                     Settings
                   </SidebarMenuButton>
@@ -114,5 +120,4 @@ export default function RootLayout({
     </html>
   );
 }
-
     
