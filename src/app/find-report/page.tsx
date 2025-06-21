@@ -36,7 +36,6 @@ export default function FindReportPage() {
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [postUrl, setPostUrl] = useState("");
 
   const filteredOrganizations = useMemo(() => {
     if (!selectedEnvironment) return [];
@@ -73,7 +72,6 @@ export default function FindReportPage() {
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
-    setPostUrl("");
   };
 
   const handleCreateJson = () => {
@@ -105,7 +103,6 @@ export default function FindReportPage() {
   const handleFind = async () => {
     setIsLoading(true);
     setResponse(null);
-    setPostUrl("");
 
     const env = environments.find(e => e.id === selectedEnvironment);
     const findAction = apiActions.find(a => a.environmentId === selectedEnvironment && a.key === 'FIND');
@@ -118,7 +115,6 @@ export default function FindReportPage() {
     }
 
     const constructedPostUrl = `${env.url}${findAction.value}`;
-    setPostUrl(constructedPostUrl);
     
     const apiKeyData = apiKeys.find(k => {
         const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
@@ -299,18 +295,6 @@ export default function FindReportPage() {
             </CardContent>
         </Card>
       </div>
-
-       <Card>
-        <CardHeader>
-          <CardTitle>Request Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className="grid gap-2">
-                <Label htmlFor="post-url">POST URL</Label>
-                <Input id="post-url" readOnly value={postUrl} className="font-mono" />
-            </div>
-        </CardContent>
-      </Card>
 
       <div className="mt-2">
         <Button onClick={handleFind} disabled={isLoading || !jsonPayload} size="lg">
