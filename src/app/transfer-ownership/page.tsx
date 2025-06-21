@@ -33,6 +33,7 @@ export default function TransferOwnershipPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
+  const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +73,7 @@ export default function TransferOwnershipPage() {
     setSelectedOrganization("");
     setSelectedOrgPath("");
     setAccessionNumber("");
+    setNewOwnerEmail("");
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
@@ -87,6 +89,7 @@ export default function TransferOwnershipPage() {
     const payload: { [key: string]: any } = {};
 
     payload.accession_number = accessionNumber;
+    payload.new_owner_email = newOwnerEmail;
 
     if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
       for (const identifier of selectedOrgDetails.studyIdentifiers) {
@@ -104,7 +107,7 @@ export default function TransferOwnershipPage() {
     setJsonPayload(JSON.stringify(payload, null, 2));
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND' && a.environmentId === selectedEnvironment);
+    const findAction = apiActions.find(a => a.key === 'FIND');
     
     if (env && findAction) {
         setConstructedPostUrl(`${env.url}${findAction.value}`);
@@ -118,7 +121,7 @@ export default function TransferOwnershipPage() {
     setResponse(null);
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND' && a.environmentId === selectedEnvironment);
+    const findAction = apiActions.find(a => a.key === 'FIND');
     const org = organizations.find(o => o.id === selectedOrganization);
     
     if(!env || !findAction || !org) {
@@ -175,13 +178,7 @@ export default function TransferOwnershipPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Request Configuration</CardTitle>
-          <CardDescription>
-            Select the parameters to build your request.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
             <div>
                 <Label className="font-semibold">Environment</Label>
                 <RadioGroup
@@ -231,15 +228,34 @@ export default function TransferOwnershipPage() {
                     placeholder="Accession Number"
                     value={accessionNumber}
                     onChange={(e) => setAccessionNumber(e.target.value)}
-                    disabled={!selectedEnvironment}
+                    disabled={!selectedOrganization}
+                />
+            </div>
+            <div className="pt-2">
+                <Label htmlFor="new_owner_email" className="font-semibold">New Owner Email</Label>
+                <Input
+                    id="new_owner_email"
+                    type="email"
+                    placeholder="new.owner@example.com"
+                    value={newOwnerEmail}
+                    onChange={(e) => setNewOwnerEmail(e.target.value)}
+                    disabled={!selectedOrganization}
+                    className="mt-2"
                 />
             </div>
         </CardContent>
-        <CardFooter>
-          <div className="flex gap-2">
-              <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
-              <Button onClick={handleReset} variant="outline">Reset</Button>
-          </div>
+        <CardFooter className="flex flex-col items-start gap-2">
+            <div className="flex gap-2">
+                <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
+                <Button onClick={handleReset} variant="outline">Reset</Button>
+            </div>
+            {constructedPostUrl && (
+                <div className="w-full p-2 mt-2 rounded-md bg-muted">
+                    <p className="text-sm font-mono text-muted-foreground break-all">
+                        {constructedPostUrl}
+                    </p>
+                </div>
+            )}
         </CardFooter>
       </Card>
       
