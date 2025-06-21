@@ -31,9 +31,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiKeyDialog from "./generate-api-key-dialog";
+import EditApiKeyDialog from "./edit-api-key-dialog";
 
 function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
     const [isVisible, setIsVisible] = useState(false);
+    const [isEditDialogOpen, setEditDialogOpen] = useState(false);
     const { toast } = useToast();
 
     const handleCopy = () => {
@@ -76,18 +78,24 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
             </TableCell>
             <TableCell>{apiKey.createdAt}</TableCell>
             <TableCell>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem className="text-destructive">Revoke</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
+                          </DialogTrigger>
+                          <DropdownMenuItem className="text-destructive">Revoke</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <EditApiKeyDialog apiKey={apiKey} onOpenChange={setEditDialogOpen} />
+                </Dialog>
             </TableCell>
         </TableRow>
     )
@@ -95,51 +103,55 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
 
 
 export default function ApiKeysTab() {
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+
   return (
-    <Dialog>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-              <div>
-                  <CardTitle>API Keys</CardTitle>
-                  <CardDescription>
-                      Manage API keys for different environments.
-                  </CardDescription>
-              </div>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                    <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add API Key
-                    </span>
-                </Button>
-              </DialogTrigger>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-              <Table>
-              <TableHeader>
-                  <TableRow>
-                  <TableHead className="w-[450px]">Key</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Environment</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>
-                      <span className="sr-only">Actions</span>
-                  </TableHead>
-                  </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {apiKeys.map((key) => (
-                      <ApiKeyRow key={key.id} apiKey={key} />
-                  ))}
-              </TableBody>
-              </Table>
-          </div>
-        </CardContent>
-      </Card>
-      <AddApiKeyDialog />
-    </Dialog>
+    <>
+      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle>API Keys</CardTitle>
+                    <CardDescription>
+                        Manage API keys for different environments.
+                    </CardDescription>
+                </div>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-1">
+                      <PlusCircle className="h-3.5 w-3.5" />
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Add API Key
+                      </span>
+                  </Button>
+                </DialogTrigger>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead className="w-[450px]">Key</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Environment</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {apiKeys.map((key) => (
+                        <ApiKeyRow key={key.id} apiKey={key} />
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
+          </CardContent>
+        </Card>
+        <AddApiKeyDialog />
+      </Dialog>
+    </>
   );
 }

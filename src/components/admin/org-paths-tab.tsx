@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -24,91 +25,108 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orgPaths, organizations } from "@/lib/placeholder-data";
+import { orgPaths, organizations, type OrgPath } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrgPathDialog from "./add-org-path-dialog";
 import { Badge } from "../ui/badge";
+import EditOrgPathDialog from "./edit-org-path-dialog";
 
 export default function OrgPathsTab() {
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedPath, setSelectedPath] = useState<OrgPath | null>(null);
+
+  const handleEditClick = (path: OrgPath) => {
+    setSelectedPath(path);
+    setEditDialogOpen(true);
+  };
+
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
     return org ? org.name : "Unknown";
   };
 
   return (
-    <Dialog>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Org Paths</CardTitle>
-              <CardDescription>
-                Manage all registered organization paths.
-              </CardDescription>
+    <>
+      <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Org Paths</CardTitle>
+                <CardDescription>
+                  Manage all registered organization paths.
+                </CardDescription>
+              </div>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1">
+                  <PlusCircle className="h-3.5 w-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add Org Path
+                  </span>
+                </Button>
+              </DialogTrigger>
             </div>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add Org Path
-                </span>
-              </Button>
-            </DialogTrigger>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Organization</TableHead>
-                <TableHead>Path</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orgPaths.map((path) => (
-                <TableRow key={path.id}>
-                  <TableCell className="font-medium">
-                    {getOrganizationName(path.organizationId)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-mono">
-                      {path.path}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{path.createdAt}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Path</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      <AddOrgPathDialog />
-    </Dialog>
+              </TableHeader>
+              <TableBody>
+                {orgPaths.map((path) => (
+                  <TableRow key={path.id}>
+                    <TableCell className="font-medium">
+                      {getOrganizationName(path.organizationId)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="font-mono">
+                        {path.path}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{path.createdAt}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleEditClick(path)}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <AddOrgPathDialog />
+      </Dialog>
+      {selectedPath && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+            <EditOrgPathDialog orgPath={selectedPath} onOpenChange={setEditDialogOpen} />
+        </Dialog>
+      )}
+    </>
   );
 }
