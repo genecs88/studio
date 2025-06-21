@@ -30,16 +30,40 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrgPathDialog from "./add-org-path-dialog";
 import { Badge } from "../ui/badge";
 import EditOrgPathDialog from "./edit-org-path-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function OrgPathsTab() {
   const [orgPaths, setOrgPaths] = useState<OrgPath[]>(initialOrgPaths);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPath, setSelectedPath] = useState<OrgPath | null>(null);
 
   const handleEditClick = (path: OrgPath) => {
     setSelectedPath(path);
     setEditDialogOpen(true);
+  };
+  
+  const handleDeleteClick = (path: OrgPath) => {
+    setSelectedPath(path);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedPath) {
+      setOrgPaths(orgPaths.filter((path) => path.id !== selectedPath.id));
+      setDeleteDialogOpen(false);
+      setSelectedPath(null);
+    }
   };
 
   const getOrganizationName = (organizationId: string) => {
@@ -119,7 +143,7 @@ export default function OrgPathsTab() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={() => handleEditClick(path)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(path)}>
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -138,6 +162,20 @@ export default function OrgPathsTab() {
             <EditOrgPathDialog orgPath={selectedPath} onOpenChange={setEditDialogOpen} />
         </Dialog>
       )}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the org path.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedPath(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

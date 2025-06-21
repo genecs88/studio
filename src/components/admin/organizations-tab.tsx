@@ -26,19 +26,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { organizations, environments, type Organization } from "@/lib/placeholder-data";
+import { organizations as initialOrganizations, environments, type Organization } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrganizationDialog from "./add-organization-dialog";
 import EditOrganizationDialog from "./edit-organization-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function OrganizationsTab() {
+  const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
   const handleEditClick = (org: Organization) => {
     setSelectedOrg(org);
     setEditDialogOpen(true);
+  };
+  
+  const handleDeleteClick = (org: Organization) => {
+    setSelectedOrg(org);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedOrg) {
+      setOrganizations(organizations.filter((org) => org.id !== selectedOrg.id));
+      setDeleteDialogOpen(false);
+      setSelectedOrg(null);
+    }
   };
 
   const getEnvironmentName = (environmentId: string) => {
@@ -105,7 +130,7 @@ export default function OrganizationsTab() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={() => handleEditClick(org)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(org)}>
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -124,6 +149,21 @@ export default function OrganizationsTab() {
           <EditOrganizationDialog organization={selectedOrg} onOpenChange={setEditDialogOpen} />
         </Dialog>
       )}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the organization
+              "{selectedOrg?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedOrg(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

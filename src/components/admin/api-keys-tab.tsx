@@ -25,17 +25,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { apiKeys, type ApiKey } from "@/lib/placeholder-data";
+import { apiKeys as initialApiKeys, type ApiKey } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiKeyDialog from "./generate-api-key-dialog";
 import EditApiKeyDialog from "./edit-api-key-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
+function ApiKeyRow({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (id: string) => void; }) {
     const [isVisible, setIsVisible] = useState(false);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const { toast } = useToast();
 
     const handleCopy = () => {
@@ -47,6 +58,11 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
             });
         }
     };
+    
+    const handleDelete = () => {
+        onDelete(apiKey.id);
+        setDeleteDialogOpen(false);
+    }
 
     return (
         <TableRow>
@@ -78,24 +94,38 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
             </TableCell>
             <TableCell>{apiKey.createdAt}</TableCell>
             <TableCell>
-                <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
-                          </DialogTrigger>
-                          <DropdownMenuItem className="text-destructive">Revoke</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <EditApiKeyDialog apiKey={apiKey} onOpenChange={setEditDialogOpen} />
-                </Dialog>
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                    <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
+                              </DialogTrigger>
+                              <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteDialogOpen(true)}>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <EditApiKeyDialog apiKey={apiKey} onOpenChange={setEditDialogOpen} />
+                    </Dialog>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the API key for "{apiKey.organization}".
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </TableCell>
         </TableRow>
     )
@@ -103,7 +133,12 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
 
 
 export default function ApiKeysTab() {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  
+  const handleDeleteKey = (id: string) => {
+    setApiKeys(apiKeys.filter(key => key.id !== id));
+  }
 
   return (
     <>
@@ -143,7 +178,7 @@ export default function ApiKeysTab() {
                 </TableHeader>
                 <TableBody>
                     {apiKeys.map((key) => (
-                        <ApiKeyRow key={key.id} apiKey={key} />
+                        <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} />
                     ))}
                 </TableBody>
                 </Table>

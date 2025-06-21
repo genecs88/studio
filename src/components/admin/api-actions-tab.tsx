@@ -26,20 +26,45 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { apiActions, environments, type ApiAction } from "@/lib/placeholder-data";
+import { apiActions as initialApiActions, environments, type ApiAction } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiActionDialog from "./add-api-action-dialog";
 import EditApiActionDialog from "./edit-api-action-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ApiActionsTab() {
+  const [apiActions, setApiActions] = useState<ApiAction[]>(initialApiActions);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<ApiAction | null>(null);
 
   const handleEditClick = (action: ApiAction) => {
     setSelectedAction(action);
     setEditDialogOpen(true);
   };
+  
+  const handleDeleteClick = (action: ApiAction) => {
+    setSelectedAction(action);
+    setDeleteDialogOpen(true);
+  };
+  
+  const handleConfirmDelete = () => {
+    if (selectedAction) {
+      setApiActions(apiActions.filter(action => action.id !== selectedAction.id));
+      setDeleteDialogOpen(false);
+      setSelectedAction(null);
+    }
+  }
 
   const getEnvironmentName = (environmentId: string) => {
     const env = environments.find((e) => e.id === environmentId);
@@ -107,7 +132,7 @@ export default function ApiActionsTab() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={() => handleEditClick(action)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(action)}>
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -126,6 +151,20 @@ export default function ApiActionsTab() {
             <EditApiActionDialog apiAction={selectedAction} onOpenChange={setEditDialogOpen} />
         </Dialog>
       )}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the API action with key "{selectedAction?.key}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedAction(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

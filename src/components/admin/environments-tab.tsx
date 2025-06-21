@@ -26,23 +26,48 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { environments, type Environment } from "@/lib/placeholder-data";
+import { environments as initialEnvironments, type Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddEnvironmentDialog from "./add-environment-dialog";
 import EditEnvironmentDialog from "./edit-environment-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
     return <Globe className="h-5 w-5 text-muted-foreground" />;
 }
 
 export default function EnvironmentsTab() {
+  const [environments, setEnvironments] = useState<Environment[]>(initialEnvironments);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<Environment | null>(null);
 
   const handleEditClick = (env: Environment) => {
     setSelectedEnv(env);
     setEditDialogOpen(true);
+  };
+  
+  const handleDeleteClick = (env: Environment) => {
+    setSelectedEnv(env);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedEnv) {
+      setEnvironments(environments.filter((env) => env.id !== selectedEnv.id));
+      setDeleteDialogOpen(false);
+      setSelectedEnv(null);
+    }
   };
 
   return (
@@ -104,7 +129,7 @@ export default function EnvironmentsTab() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={() => handleEditClick(env)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteClick(env)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -121,6 +146,21 @@ export default function EnvironmentsTab() {
             <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} />
         </Dialog>
       )}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the environment
+              "{selectedEnv?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedEnv(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
