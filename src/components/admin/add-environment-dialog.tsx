@@ -27,7 +27,11 @@ const environmentSchema = z.object({
   url: z.string().url("Please enter a valid URL"),
 });
 
-export default function AddEnvironmentDialog() {
+interface AddEnvironmentDialogProps {
+  onEnvironmentAdded: (newEnv: z.infer<typeof environmentSchema>) => void;
+}
+
+export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironmentDialogProps) {
   const form = useForm<z.infer<typeof environmentSchema>>({
     resolver: zodResolver(environmentSchema),
     defaultValues: {
@@ -37,9 +41,7 @@ export default function AddEnvironmentDialog() {
   });
 
   const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    console.log(values);
-    // Here you would typically handle form submission, e.g., call an API
-    alert("Environment added (see console for data).");
+    onEnvironmentAdded(values);
     form.reset();
   };
 

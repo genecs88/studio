@@ -70,6 +70,16 @@ export default function EnvironmentsTab() {
     }
   };
 
+  const handleAddEnvironment = (newEnvData: { name: string; url: string }) => {
+    const newEnv: Environment = {
+      id: `env_${Date.now()}`,
+      name: newEnvData.name,
+      url: newEnvData.url,
+    };
+    setEnvironments(prevEnvs => [...prevEnvs, newEnv]);
+    setAddDialogOpen(false);
+  };
+
   return (
     <>
       <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
@@ -139,7 +149,7 @@ export default function EnvironmentsTab() {
             </Table>
           </CardContent>
         </Card>
-        <AddEnvironmentDialog />
+        <AddEnvironmentDialog onEnvironmentAdded={handleAddEnvironment} />
       </Dialog>
       {selectedEnv && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
