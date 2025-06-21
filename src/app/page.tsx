@@ -20,7 +20,7 @@ export default function HomePage() {
         </p>
       </div>
       <div className="grid md:grid-cols-2 gap-6 mt-4">
-        <Link href="/admin" className="block hover:no-underline">
+        <Link href="/admin-management" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
               <div className="p-3 rounded-lg bg-primary/10">
