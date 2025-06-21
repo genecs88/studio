@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wrench, Search } from 'lucide-react';
+import { Wrench, Search, ArrowRightLeft } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -54,12 +54,12 @@ export default function HomePage() {
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
               <div className="p-3 rounded-lg bg-primary/10">
-                <Search className="w-8 h-8 text-primary" />
+                <ArrowRightLeft className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>FR2</CardTitle>
+                <CardTitle>Transfer Ownership</CardTitle>
                 <CardDescription className="mt-1">
-                  A duplicated Find Report feature.
+                  Perform a transfer of ownership for a report.
                 </CardDescription>
               </div>
             </CardHeader>

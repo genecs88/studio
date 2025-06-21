@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
 
-export default function FR2Page() {
+export default function TransferOwnershipPage() {
   const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
 
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
@@ -113,7 +113,7 @@ export default function FR2Page() {
     }
   };
   
-  const handleFind = async () => {
+  const handleTransfer = async () => {
     setIsLoading(true);
     setResponse(null);
 
@@ -169,7 +169,7 @@ export default function FR2Page() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          FR2
+          Transfer Ownership
         </h1>
       </div>
 
@@ -305,8 +305,8 @@ export default function FR2Page() {
       </div>
 
       <div className="mt-2">
-        <Button onClick={handleFind} disabled={isLoading || !jsonPayload} size="lg">
-            {isLoading ? 'Finding...' : 'FIND'}
+        <Button onClick={handleTransfer} disabled={isLoading || !jsonPayload} size="lg">
+            {isLoading ? 'Transferring...' : 'TRANSFER'}
         </Button>
       </div>
 

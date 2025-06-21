@@ -24,6 +24,7 @@ import {
   Settings,
   Wrench,
   Search,
+  ArrowRightLeft,
 } from "lucide-react";
 import { AppDataProvider } from '@/context/app-data-context';
 
@@ -38,7 +39,7 @@ export default function RootLayout({
     if (pathname === '/') return 'Dashboard';
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
-    if (pathname === '/fr2') return 'FR2';
+    if (pathname === '/fr2') return 'Transfer Ownership';
     return 'Tech Support Tools';
   }
 
@@ -93,8 +94,8 @@ export default function RootLayout({
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === '/fr2'}>
                       <Link href="/fr2">
-                        <Search />
-                        FR2
+                        <ArrowRightLeft />
+                        Transfer Ownership
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

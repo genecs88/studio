@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function FR2Layout({
+export default function TransferOwnershipLayout({
   children,
 }: {
   children: React.ReactNode;
