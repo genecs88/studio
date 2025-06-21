@@ -154,7 +154,7 @@ export default function FindReportPage() {
         try {
             const responseData = JSON.parse(responseText);
             setResponse(responseData);
-        } catch (e) {
+        } catch (e) => {
             setResponse(responseText);
         }
 

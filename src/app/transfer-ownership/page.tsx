@@ -162,7 +162,7 @@ export default function TransferOwnershipPage() {
         try {
             const responseData = JSON.parse(responseText);
             setResponse(responseData);
-        } catch (e) {
+        } catch (e) => {
             setResponse(responseText);
         }
 
