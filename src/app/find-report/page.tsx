@@ -245,8 +245,8 @@ export default function FindReportPage() {
         </CardFooter>
       </Card>
       
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid md:grid-cols-4 gap-6">
+        <Card className="md:col-span-1">
             <CardHeader>
                 <CardTitle>JSON Payload</CardTitle>
                 <CardDescription>Generated JSON, you can edit it before sending.</CardDescription>
@@ -260,7 +260,7 @@ export default function FindReportPage() {
                 />
             </CardContent>
         </Card>
-        <Card>
+        <Card className="md:col-span-3">
             <CardHeader>
                 <CardTitle>API Response</CardTitle>
                 <CardDescription>The response from the POST request will appear here.</CardDescription>
