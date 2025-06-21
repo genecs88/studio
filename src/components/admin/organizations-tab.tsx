@@ -76,7 +76,7 @@ export default function OrganizationsTab() {
       id: `org_${Date.now()}`,
       name: newOrgData.name,
       environmentId: newOrgData.environmentId,
-      patientIdentifiers: newOrgData.patientIdentifiers || [],
+      studyIdentifiers: newOrgData.studyIdentifiers || [],
       createdAt: new Date().toISOString().split('T')[0],
     };
     setOrganizations(prevOrgs => [...prevOrgs, newOrg]);

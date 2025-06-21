@@ -35,7 +35,7 @@ import { PlusCircle, X } from "lucide-react";
 const organizationSchema = z.object({
   name: z.string().min(1, "Organization name is required"),
   environmentId: z.string().min(1, "Environment is required"),
-  patientIdentifiers: z
+  studyIdentifiers: z
     .array(
       z.object({
         key: z.string().min(1, "Key name is required"),
@@ -58,13 +58,13 @@ export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrgani
     defaultValues: {
       name: "",
       environmentId: "",
-      patientIdentifiers: [],
+      studyIdentifiers: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "patientIdentifiers",
+    name: "studyIdentifiers",
   });
 
   const onSubmit = (values: z.infer<typeof organizationSchema>) => {
@@ -127,9 +127,9 @@ export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrgani
 
           <div className="space-y-4">
             <div>
-              <Label className="text-base font-semibold">Patient Identifiers</Label>
+              <Label className="text-base font-semibold">Study Identifiers</Label>
               <p className="text-sm text-muted-foreground">
-                Define up to 4 key-value pairs for patient identification.
+                add up to 4 key value pairs for study uniqueness - this was defined during integration
               </p>
             </div>
 
@@ -141,7 +141,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrgani
                 >
                   <FormField
                     control={form.control}
-                    name={`patientIdentifiers.${index}.key`}
+                    name={`studyIdentifiers.${index}.key`}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Key {index + 1}</FormLabel>
@@ -154,7 +154,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrgani
                   />
                   <FormField
                     control={form.control}
-                    name={`patientIdentifiers.${index}.value`}
+                    name={`studyIdentifiers.${index}.value`}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Value {index + 1}</FormLabel>
