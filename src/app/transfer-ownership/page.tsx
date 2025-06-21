@@ -89,7 +89,7 @@ export default function TransferOwnershipPage() {
     const payload: { [key: string]: any } = {};
 
     payload.accession_number = accessionNumber;
-    payload.new_owner_email = newOwnerEmail;
+    payload.email = newOwnerEmail;
 
     if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
       for (const identifier of selectedOrgDetails.studyIdentifiers) {
@@ -232,7 +232,6 @@ export default function TransferOwnershipPage() {
                 />
             </div>
             <div className="pt-2">
-                <Label htmlFor="new_owner_email" className="font-semibold">New Owner Email</Label>
                 <Input
                     id="new_owner_email"
                     type="email"
@@ -240,7 +239,6 @@ export default function TransferOwnershipPage() {
                     value={newOwnerEmail}
                     onChange={(e) => setNewOwnerEmail(e.target.value)}
                     disabled={!selectedOrganization}
-                    className="mt-2"
                 />
             </div>
         </CardContent>
