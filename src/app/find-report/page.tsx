@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -21,28 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  organizations as initialOrganizations,
-  apiKeys as initialApiKeys,
-  environments as initialEnvironments,
-  orgPaths as initialOrgPaths,
-  apiActions as initialApiActions,
-  type Organization,
-  type ApiKey,
-  type Environment,
-  type OrgPath,
-  type ApiAction,
-} from "@/lib/placeholder-data";
 import { Separator } from "@/components/ui/separator";
 
 export default function FindReportPage() {
-  const [environments, setEnvironments] =
-    useState<Environment[]>(initialEnvironments);
-  const [organizations, setOrganizations] =
-    useState<Organization[]>(initialOrganizations);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
-  const [orgPaths, setOrgPaths] = useState<OrgPath[]>(initialOrgPaths);
-  const [apiActions, setApiActions] = useState<ApiAction[]>(initialApiActions);
+  const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
 
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
@@ -54,6 +37,7 @@ export default function FindReportPage() {
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [postUrl, setPostUrl] = useState("");
 
   const filteredOrganizations = useMemo(() => {
     if (!selectedEnvironment) return [];
@@ -97,6 +81,7 @@ export default function FindReportPage() {
     setJsonPayload("");
     setResponse("");
     setIsLoading(false);
+    setPostUrl("");
   };
 
   const handleCreateJson = () => {
@@ -115,7 +100,6 @@ export default function FindReportPage() {
       for (const identifier of selectedOrgDetails.studyIdentifiers) {
         const value = studyIdentifierValues[identifier.key];
         if (value) {
-            // as per user request, the key in the JSON is the 'value' from studyIdentifiers
             payload[identifier.value] = value;
         }
       }
@@ -134,6 +118,7 @@ export default function FindReportPage() {
   const handleFind = async () => {
     setIsLoading(true);
     setResponse("");
+    setPostUrl("");
 
     const env = environments.find(e => e.id === selectedEnvironment);
     const findAction = apiActions.find(a => a.environmentId === selectedEnvironment && a.key === 'FIND');
@@ -145,7 +130,8 @@ export default function FindReportPage() {
         return;
     }
 
-    const postUrl = `${env.url}${findAction.value}`;
+    const constructedPostUrl = `${env.url}${findAction.value}`;
+    setPostUrl(constructedPostUrl);
     
     const apiKeyData = apiKeys.find(k => {
         const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
@@ -159,7 +145,7 @@ export default function FindReportPage() {
     }
 
     try {
-        const res = await fetch(postUrl, {
+        const res = await fetch(constructedPostUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -318,17 +304,22 @@ export default function FindReportPage() {
 
        <Card>
         <CardHeader>
-          <CardTitle>Execute Request</CardTitle>
+          <CardTitle>Request Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button onClick={handleFind} disabled={isLoading || !jsonPayload}>
-            {isLoading ? 'Finding...' : 'FIND'}
-          </Button>
+            <div className="grid gap-2">
+                <Label htmlFor="post-url">POST URL</Label>
+                <Input id="post-url" readOnly value={postUrl} className="font-mono" />
+            </div>
         </CardContent>
       </Card>
+
+      <div className="mt-2">
+        <Button onClick={handleFind} disabled={isLoading || !jsonPayload} size="lg">
+            {isLoading ? 'Finding...' : 'FIND'}
+        </Button>
+      </div>
 
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -45,10 +46,9 @@ interface ApiActionsTabProps {
   apiActions: ApiAction[];
   setApiActions: React.Dispatch<React.SetStateAction<ApiAction[]>>;
   environments: Environment[];
-  onApiActionUpdated: (updatedApiAction: ApiAction) => void;
 }
 
-export default function ApiActionsTab({ apiActions, setApiActions, environments, onApiActionUpdated }: ApiActionsTabProps) {
+export default function ApiActionsTab({ apiActions, setApiActions, environments }: ApiActionsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -82,6 +82,10 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments,
     setAddDialogOpen(false);
   };
 
+  const onApiActionUpdated = (updatedApiAction: ApiAction) => {
+      setApiActions(actions => actions.map(action => action.id === updatedApiAction.id ? updatedApiAction : action));
+  };
+  
   const handleApiActionUpdated = (updatedActionData: Omit<ApiAction, 'createdAt'>) => {
     const originalAction = apiActions.find(a => a.id === updatedActionData.id);
     if(originalAction) {

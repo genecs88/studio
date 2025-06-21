@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -48,10 +49,9 @@ const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
 interface EnvironmentsTabProps {
   environments: Environment[];
   setEnvironments: React.Dispatch<React.SetStateAction<Environment[]>>;
-  onEnvironmentUpdated: (updatedEnv: Environment) => void;
 }
 
-export default function EnvironmentsTab({ environments, setEnvironments, onEnvironmentUpdated }: EnvironmentsTabProps) {
+export default function EnvironmentsTab({ environments, setEnvironments }: EnvironmentsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -83,6 +83,10 @@ export default function EnvironmentsTab({ environments, setEnvironments, onEnvir
     };
     setEnvironments(prevEnvs => [...prevEnvs, newEnv]);
     setAddDialogOpen(false);
+  };
+
+  const onEnvironmentUpdated = (updatedEnv: Environment) => {
+    setEnvironments(envs => envs.map(env => env.id === updatedEnv.id ? updatedEnv : env));
   };
 
   return (

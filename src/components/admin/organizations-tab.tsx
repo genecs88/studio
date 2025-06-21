@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -45,10 +46,9 @@ interface OrganizationsTabProps {
   organizations: Organization[];
   setOrganizations: React.Dispatch<React.SetStateAction<Organization[]>>;
   environments: Environment[];
-  onOrganizationUpdated: (updatedOrg: Organization) => void;
 }
 
-export default function OrganizationsTab({ organizations, setOrganizations, environments, onOrganizationUpdated }: OrganizationsTabProps) {
+export default function OrganizationsTab({ organizations, setOrganizations, environments }: OrganizationsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -87,6 +87,10 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
     };
     setOrganizations(prevOrgs => [...prevOrgs, newOrg]);
     setAddDialogOpen(false);
+  };
+  
+  const onOrganizationUpdated = (updatedOrg: Organization) => {
+    setOrganizations(orgs => orgs.map(org => org.id === updatedOrg.id ? updatedOrg : org));
   };
   
   const handleOrganizationUpdated = (updatedOrgData: Omit<Organization, 'createdAt'>) => {

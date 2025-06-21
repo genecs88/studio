@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -46,10 +47,9 @@ interface OrgPathsTabProps {
   setOrgPaths: React.Dispatch<React.SetStateAction<OrgPath[]>>;
   organizations: Organization[];
   environments: Environment[];
-  onOrgPathUpdated: (updatedOrgPath: OrgPath) => void;
 }
 
-export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, environments, onOrgPathUpdated }: OrgPathsTabProps) {
+export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, environments }: OrgPathsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -86,6 +86,10 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
     };
     setOrgPaths(prevPaths => [...prevPaths, newPath]);
     setAddDialogOpen(false);
+  };
+
+  const onOrgPathUpdated = (updatedOrgPath: OrgPath) => {
+    setOrgPaths(paths => paths.map(path => path.id === updatedOrgPath.id ? updatedOrgPath : path));
   };
   
   const handleOrgPathUpdated = (updatedPathData: Omit<OrgPath, 'createdAt'>) => {

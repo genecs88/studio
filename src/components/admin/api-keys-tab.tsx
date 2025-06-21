@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -130,10 +131,9 @@ interface ApiKeysTabProps {
     setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
     organizations: Organization[];
     environments: Environment[];
-    onApiKeyUpdated: (apiKey: ApiKey) => void;
 }
 
-export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environments, onApiKeyUpdated }: ApiKeysTabProps) {
+export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environments }: ApiKeysTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
@@ -162,6 +162,10 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
         setApiKeys(prevKeys => [...prevKeys, newKey]);
         setAddDialogOpen(false);
     }
+  };
+  
+  const onApiKeyUpdated = (updatedKey: ApiKey) => {
+      setApiKeys(keys => keys.map(k => k.id === updatedKey.id ? updatedKey : k));
   };
 
   const handleApiKeyUpdated = (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {

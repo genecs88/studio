@@ -25,6 +25,7 @@ import {
   Wrench,
   Search,
 } from "lucide-react";
+import { AppDataProvider } from '@/context/app-data-context';
 
 export default function RootLayout({
   children,
@@ -52,72 +53,73 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning={true}>
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarHeader>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/10">
-                    <Wrench className="w-6 h-6 text-primary" />
+        <AppDataProvider>
+          <SidebarProvider>
+            <Sidebar>
+              <SidebarHeader>
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Wrench className="w-6 h-6 text-primary" />
+                  </div>
+                  <h1 className="text-xl font-headline font-semibold">Tech Support Tools</h1>
                 </div>
-                <h1 className="text-xl font-headline font-semibold">Tech Support Tools</h1>
-              </div>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/' || pathname.startsWith('/admin')}>
-                    <Link href="/">
-                      <Home />
-                      Admin Dashboard
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/find-report'}>
-                    <Link href="/find-report">
-                      <Search />
-                      Find Report
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>
-                    <Settings />
-                    Settings
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarContent>
-            <SidebarFooter>
-              <div className="flex items-center gap-3 p-2">
-                <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" alt="@user" />
-                  <AvatarFallback>AD</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Admin User</span>
-                  <span className="text-xs text-muted-foreground">
-                    admin@techsupport.dev
-                  </span>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/' || pathname.startsWith('/admin')}>
+                      <Link href="/">
+                        <Home />
+                        Admin Dashboard
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/find-report'}>
+                      <Link href="/find-report">
+                        <Search />
+                        Find Report
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Settings />
+                      Settings
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarContent>
+              <SidebarFooter>
+                <div className="flex items-center gap-3 p-2">
+                  <Avatar>
+                    <AvatarImage src="https://placehold.co/40x40.png" alt="@user" />
+                    <AvatarFallback>AD</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">Admin User</span>
+                    <span className="text-xs text-muted-foreground">
+                      admin@techsupport.dev
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </SidebarFooter>
-          </Sidebar>
-          <SidebarInset>
-            <header className="flex items-center justify-between p-4 border-b md:justify-end">
-              <div className="md:hidden">
-                <SidebarTrigger />
-              </div>
-              <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">Welcome, Admin!</span>
-              </div>
-            </header>
-            <main className="p-4 md:p-6">{children}</main>
-          </SidebarInset>
-        </SidebarProvider>
-        <Toaster />
+              </SidebarFooter>
+            </Sidebar>
+            <SidebarInset>
+              <header className="flex items-center justify-between p-4 border-b md:justify-end">
+                <div className="md:hidden">
+                  <SidebarTrigger />
+                </div>
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">Welcome, Admin!</span>
+                </div>
+              </header>
+              <main className="p-4 md:p-6">{children}</main>
+            </SidebarInset>
+          </SidebarProvider>
+          <Toaster />
+        </AppDataProvider>
       </body>
     </html>
   );
 }
-    
