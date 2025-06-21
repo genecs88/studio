@@ -16,7 +16,7 @@ export type ApiKey = {
 };
 
 export type Environment = {
-  id: string;
+  id:string;
   name: string;
   url: string;
 };
@@ -112,6 +112,7 @@ export const apiActions: ApiAction[] = [
     { id: "action_1", key: "default_model", value: "gemini-1.5-pro", environmentId: "env_1", createdAt: "2023-05-01" },
     { id: "action_2", key: "timeout_ms", value: "30000", environmentId: "env_1", createdAt: "2023-05-02" },
     { id: "action_3", key: "FIND", value: "/integrations/reports/find", environmentId: "env_1", createdAt: "2023-05-03" },
+    { id: "action_4", key: "transfer ownership", value: "/integrations/reports/transfer-ownership", environmentId: "env_1", createdAt: "2024-06-21" },
 ];
 
     

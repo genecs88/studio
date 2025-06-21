@@ -7,7 +7,6 @@ import { JsonViewer } from "@textea/json-viewer"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   CardFooter,
@@ -112,30 +111,30 @@ export default function TransferOwnershipPage() {
     setJsonPayload(JSON.stringify(payload, null, 2));
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND');
+    const transferAction = apiActions.find(a => a.key === 'transfer ownership');
     
-    if (env && findAction) {
-        setConstructedPostUrl(`${env.url}${findAction.value}`);
+    if (env && transferAction) {
+        setConstructedPostUrl(`${env.url}${transferAction.value}`);
     } else {
         setConstructedPostUrl("");
     }
   };
   
-  const handleFind = async () => {
+  const handleTransfer = async () => {
     setIsLoading(true);
     setResponse(null);
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND');
+    const transferAction = apiActions.find(a => a.key === 'transfer ownership');
     const org = organizations.find(o => o.id === selectedOrganization);
     
-    if(!env || !findAction || !org) {
+    if(!env || !transferAction || !org) {
         setResponse("Error: Could not construct URL. Missing environment, action, or organization details.");
         setIsLoading(false);
         return;
     }
 
-    const urlToFetch = `${env.url}${findAction.value}`;
+    const urlToFetch = `${env.url}${transferAction.value}`;
     
     const apiKeyData = apiKeys.find(k => {
         const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
@@ -330,8 +329,8 @@ export default function TransferOwnershipPage() {
       </div>
 
       <div className="mt-2">
-        <Button onClick={handleFind} disabled={isLoading || !jsonPayload} size="lg">
-            {isLoading ? 'Finding...' : 'FIND'}
+        <Button onClick={handleTransfer} disabled={isLoading || !jsonPayload} size="lg">
+            {isLoading ? 'Transferring...' : 'Transfer Ownership'}
         </Button>
       </div>
 
