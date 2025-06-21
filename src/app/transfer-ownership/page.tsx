@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 export default function TransferOwnershipPage() {
@@ -34,6 +35,7 @@ export default function TransferOwnershipPage() {
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
+  const [forceChecked, setForceChecked] = useState(false);
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +76,7 @@ export default function TransferOwnershipPage() {
     setSelectedOrgPath("");
     setAccessionNumber("");
     setNewOwnerEmail("");
+    setForceChecked(false);
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
@@ -103,6 +106,8 @@ export default function TransferOwnershipPage() {
         payload.org_path = orgPathData.path.split(",");
       }
     }
+    
+    payload.force = forceChecked;
 
     setJsonPayload(JSON.stringify(payload, null, 2));
 
@@ -231,7 +236,18 @@ export default function TransferOwnershipPage() {
                     disabled={!selectedOrganization}
                 />
             </div>
-            <div className="pt-2">
+            <div className="pt-2 flex items-center gap-4">
+                <div className="flex items-center space-x-2">
+                    <Checkbox 
+                        id="force" 
+                        checked={forceChecked} 
+                        onCheckedChange={(checked) => setForceChecked(checked === true)}
+                        disabled={!selectedOrganization}
+                    />
+                    <Label htmlFor="force" className="font-normal cursor-pointer">
+                        Force
+                    </Label>
+                </div>
                 <Input
                     id="new_owner_email"
                     type="email"
@@ -239,6 +255,7 @@ export default function TransferOwnershipPage() {
                     value={newOwnerEmail}
                     onChange={(e) => setNewOwnerEmail(e.target.value)}
                     disabled={!selectedOrganization}
+                    className="flex-1"
                 />
             </div>
         </CardContent>
