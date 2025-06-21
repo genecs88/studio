@@ -31,9 +31,6 @@ export default function FindReportPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
-  const [studyIdentifierValues, setStudyIdentifierValues] = useState<{
-    [key: string]: string;
-  }>({});
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,17 +56,11 @@ export default function FindReportPage() {
     setSelectedEnvironment(value);
     setSelectedOrganization("");
     setSelectedOrgPath("");
-    setStudyIdentifierValues({});
   };
 
   const handleOrganizationChange = (value: string) => {
     setSelectedOrganization(value);
     setSelectedOrgPath("");
-    setStudyIdentifierValues({});
-  };
-
-  const handleIdentifierChange = (key: string, value: string) => {
-    setStudyIdentifierValues((prev) => ({ ...prev, [key]: value }));
   };
   
   const handleReset = () => {
@@ -77,7 +68,6 @@ export default function FindReportPage() {
     setSelectedOrganization("");
     setSelectedOrgPath("");
     setAccessionNumber("");
-    setStudyIdentifierValues({});
     setJsonPayload("");
     setResponse("");
     setIsLoading(false);
@@ -92,16 +82,11 @@ export default function FindReportPage() {
 
     const payload: { [key: string]: any } = {};
 
-    if (accessionNumber) {
-      payload.accession_number = accessionNumber;
-    }
+    payload.accession_number = accessionNumber;
 
     if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
       for (const identifier of selectedOrgDetails.studyIdentifiers) {
-        const value = studyIdentifierValues[identifier.key];
-        if (value) {
-            payload[identifier.value] = value;
-        }
+        payload[identifier.value] = "";
       }
     }
 
@@ -244,24 +229,6 @@ export default function FindReportPage() {
                         onChange={(e) => setAccessionNumber(e.target.value)}
                     />
                 </div>
-                {selectedOrgDetails && selectedOrgDetails.studyIdentifiers.length > 0 && (
-                     <div className="grid gap-4 mt-2">
-                        <Label>Study Identifiers</Label>
-                        <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg">
-                        {selectedOrgDetails.studyIdentifiers.map((identifier) => (
-                            <div className="grid gap-2" key={identifier.key}>
-                                <Label htmlFor={identifier.key}>{identifier.key}</Label>
-                                <Input
-                                    id={identifier.key}
-                                    value={studyIdentifierValues[identifier.key] || ""}
-                                    onChange={(e) => handleIdentifierChange(identifier.key, e.target.value)}
-                                    placeholder={`Enter ${identifier.key}`}
-                                />
-                            </div>
-                        ))}
-                        </div>
-                    </div>
-                )}
             </div>
             
         </CardContent>
