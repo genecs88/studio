@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -28,9 +28,10 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { organizations, type OrgPath } from "@/lib/placeholder-data";
+import { organizations, environments, type OrgPath, type Organization } from "@/lib/placeholder-data";
 
 const orgPathSchema = z.object({
+  environmentId: z.string().min(1, "Environment is required"),
   organizationId: z.string().min(1, "Organization is required"),
   path: z.string().min(1, "Org path data is required"),
 });
@@ -41,20 +42,48 @@ interface EditOrgPathDialogProps {
 }
 
 export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPathDialogProps) {
+  const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
+  
+  const initialOrg = organizations.find(o => o.id === orgPath.organizationId);
+  const initialEnvId = initialOrg ? initialOrg.environmentId : "";
+
   const form = useForm<z.infer<typeof orgPathSchema>>({
     resolver: zodResolver(orgPathSchema),
     defaultValues: {
+      environmentId: initialEnvId,
       organizationId: orgPath.organizationId,
       path: orgPath.path,
     },
   });
 
+  const selectedEnvironmentId = form.watch("environmentId");
+
   useEffect(() => {
+    const org = organizations.find(o => o.id === orgPath.organizationId);
+    const envId = org ? org.environmentId : "";
     form.reset({
+      environmentId: envId,
       organizationId: orgPath.organizationId,
       path: orgPath.path,
     });
   }, [orgPath, form]);
+  
+  useEffect(() => {
+    if (selectedEnvironmentId) {
+      const filtered = organizations.filter(
+        (org) => org.environmentId === selectedEnvironmentId
+      );
+      setFilteredOrganizations(filtered);
+
+      const currentOrgId = form.getValues("organizationId");
+      if (!filtered.some(org => org.id === currentOrgId)) {
+          form.setValue("organizationId", "");
+      }
+    } else {
+      setFilteredOrganizations([]);
+      form.setValue("organizationId", "");
+    }
+  }, [selectedEnvironmentId, form]);
 
   const onSubmit = (values: z.infer<typeof orgPathSchema>) => {
     console.log("Updated values:", { id: orgPath.id, ...values });
@@ -72,6 +101,34 @@ export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPath
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+        <FormField
+            control={form.control}
+            name="environmentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Environment</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an environment" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {environments.map((env) => (
+                      <SelectItem key={env.id} value={env.id}>
+                        {env.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="organizationId"
@@ -81,6 +138,7 @@ export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPath
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  disabled={!selectedEnvironmentId}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -88,11 +146,17 @@ export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPath
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
+                    {filteredOrganizations.length > 0 ? (
+                      filteredOrganizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No organizations for this environment
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
