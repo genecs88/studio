@@ -13,22 +13,22 @@ export default function AdminDashboard() {
         <p className="text-muted-foreground">Access various tools and utilities for tech support.</p>
       </div>
 
-      <Tabs defaultValue="api-keys" className="w-full">
+      <Tabs defaultValue="environments" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="environments">Environments</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="environments">Environments</TabsTrigger>
           <TabsTrigger value="org-paths">Org Paths</TabsTrigger>
           <TabsTrigger value="api-actions">API Actions</TabsTrigger>
         </TabsList>
+        <TabsContent value="environments">
+            <EnvironmentsTab />
+        </TabsContent>
         <TabsContent value="organizations">
             <OrganizationsTab />
         </TabsContent>
         <TabsContent value="api-keys">
             <ApiKeysTab />
-        </TabsContent>
-        <TabsContent value="environments">
-            <EnvironmentsTab />
         </TabsContent>
         <TabsContent value="org-paths">
             <OrgPathsTab />
