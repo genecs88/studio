@@ -22,6 +22,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+
 
 export default function FindReportPage() {
   const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
@@ -165,21 +168,25 @@ export default function FindReportPage() {
             Select the parameters to build your request.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4">
-            <div className="grid md:grid-cols-4 gap-4">
-                <Select value={selectedEnvironment} onValueChange={handleEnvironmentChange}>
-                  <SelectTrigger id="environment">
-                      <SelectValue placeholder="Select Environment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {environments.map((env) => (
-                      <SelectItem key={env.id} value={env.id}>
-                          {env.name}
-                      </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                
+        <CardContent className="p-4 space-y-4">
+            <div>
+                <Label className="font-semibold">Environment</Label>
+                <RadioGroup
+                    value={selectedEnvironment}
+                    onValueChange={handleEnvironmentChange}
+                    className="flex flex-wrap gap-x-6 gap-y-2 mt-2"
+                >
+                    {environments.map((env) => (
+                        <div key={env.id} className="flex items-center space-x-2">
+                            <RadioGroupItem value={env.id} id={env.id} />
+                            <Label htmlFor={env.id} className="font-normal cursor-pointer">
+                                {env.name}
+                            </Label>
+                        </div>
+                    ))}
+                </RadioGroup>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4 pt-2">
                 <Select value={selectedOrganization} onValueChange={handleOrganizationChange} disabled={!selectedEnvironment}>
                   <SelectTrigger id="organization">
                       <SelectValue placeholder="Select Organization" />
@@ -211,6 +218,7 @@ export default function FindReportPage() {
                     placeholder="Accession Number"
                     value={accessionNumber}
                     onChange={(e) => setAccessionNumber(e.target.value)}
+                    disabled={!selectedEnvironment}
                 />
             </div>
         </CardContent>
