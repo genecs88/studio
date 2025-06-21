@@ -26,6 +26,7 @@ import {
   Search,
   ArrowRightLeft,
   XCircle,
+  FilePenLine,
 } from "lucide-react";
 import { AppDataProvider } from '@/context/app-data-context';
 
@@ -42,6 +43,7 @@ export default function RootLayout({
     if (pathname === '/find-report') return 'Find Report';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/cancel-report') return 'Cancel Report';
+    if (pathname === '/update-report') return 'Update Report';
     return 'Tech Support Tools';
   }
 
@@ -106,6 +108,14 @@ export default function RootLayout({
                       <Link href="/cancel-report">
                         <XCircle />
                         Cancel Report
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/update-report'}>
+                      <Link href="/update-report">
+                        <FilePenLine />
+                        Update Report
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
