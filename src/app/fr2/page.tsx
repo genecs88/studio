@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 export default function TransferOwnershipPage() {
@@ -33,6 +34,8 @@ export default function TransferOwnershipPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
+  const [newOwnerEmail, setNewOwnerEmail] = useState("");
+  const [force, setForce] = useState(false);
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +75,8 @@ export default function TransferOwnershipPage() {
     setSelectedOrganization("");
     setSelectedOrgPath("");
     setAccessionNumber("");
+    setNewOwnerEmail("");
+    setForce(false);
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
@@ -87,6 +92,9 @@ export default function TransferOwnershipPage() {
     const payload: { [key: string]: any } = {};
 
     payload.accession_number = accessionNumber;
+    payload.new_owner_email = newOwnerEmail;
+    payload.force = force;
+
 
     if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
       for (const identifier of selectedOrgDetails.studyIdentifiers) {
@@ -192,7 +200,7 @@ export default function TransferOwnershipPage() {
                     ))}
                 </RadioGroup>
             </div>
-            <div className="grid md:grid-cols-3 gap-4 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <Select value={selectedOrganization} onValueChange={handleOrganizationChange} disabled={!selectedEnvironment}>
                   <SelectTrigger id="organization">
                       <SelectValue placeholder="Select Organization" />
@@ -226,6 +234,23 @@ export default function TransferOwnershipPage() {
                     onChange={(e) => setAccessionNumber(e.target.value)}
                     disabled={!selectedEnvironment}
                 />
+
+                <Input
+                    id="new_owner_email"
+                    placeholder="New Owner Email"
+                    value={newOwnerEmail}
+                    onChange={(e) => setNewOwnerEmail(e.target.value)}
+                    disabled={!selectedEnvironment}
+                />
+            </div>
+            <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                    id="force"
+                    checked={force}
+                    onCheckedChange={(checked) => setForce(!!checked)}
+                    disabled={!selectedEnvironment}
+                />
+                <Label htmlFor="force" className="font-normal cursor-pointer">Force</Label>
             </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start gap-2">
