@@ -25,13 +25,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orgPaths, organizations, type OrgPath } from "@/lib/placeholder-data";
+import { orgPaths as initialOrgPaths, organizations, type OrgPath } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrgPathDialog from "./add-org-path-dialog";
 import { Badge } from "../ui/badge";
 import EditOrgPathDialog from "./edit-org-path-dialog";
 
 export default function OrgPathsTab() {
+  const [orgPaths, setOrgPaths] = useState<OrgPath[]>(initialOrgPaths);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedPath, setSelectedPath] = useState<OrgPath | null>(null);
@@ -44,6 +45,16 @@ export default function OrgPathsTab() {
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
     return org ? org.name : "Unknown";
+  };
+  
+  const handleAddOrgPath = (newPathData: { organizationId: string; path: string }) => {
+    const newPath: OrgPath = {
+      id: `path_${Date.now()}`,
+      ...newPathData,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setOrgPaths(prevPaths => [...prevPaths, newPath]);
+    setAddDialogOpen(false);
   };
 
   return (
@@ -120,7 +131,7 @@ export default function OrgPathsTab() {
             </Table>
           </CardContent>
         </Card>
-        <AddOrgPathDialog />
+        <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} />
       </Dialog>
       {selectedPath && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>

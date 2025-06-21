@@ -35,7 +35,11 @@ const orgPathSchema = z.object({
   path: z.string().min(1, "Org path data is required"),
 });
 
-export default function AddOrgPathDialog() {
+interface AddOrgPathDialogProps {
+    onOrgPathAdded: (newPath: z.infer<typeof orgPathSchema>) => void;
+}
+
+export default function AddOrgPathDialog({ onOrgPathAdded }: AddOrgPathDialogProps) {
   const form = useForm<z.infer<typeof orgPathSchema>>({
     resolver: zodResolver(orgPathSchema),
     defaultValues: {
@@ -45,9 +49,7 @@ export default function AddOrgPathDialog() {
   });
 
   const onSubmit = (values: z.infer<typeof orgPathSchema>) => {
-    console.log(values);
-    // Here you would typically handle form submission, e.g., call an API
-    alert("Org Path added (see console for data).");
+    onOrgPathAdded(values);
     form.reset();
   };
 
