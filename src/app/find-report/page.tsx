@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from "react";
 import { useAppData } from "@/context/app-data-context";
+import { JsonViewer } from "@textea/json-viewer"
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FindReportPage() {
   const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
@@ -32,7 +34,7 @@ export default function FindReportPage() {
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
   const [jsonPayload, setJsonPayload] = useState("");
-  const [response, setResponse] = useState("");
+  const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [postUrl, setPostUrl] = useState("");
 
@@ -69,7 +71,7 @@ export default function FindReportPage() {
     setSelectedOrgPath("");
     setAccessionNumber("");
     setJsonPayload("");
-    setResponse("");
+    setResponse(null);
     setIsLoading(false);
     setPostUrl("");
   };
@@ -102,7 +104,7 @@ export default function FindReportPage() {
   
   const handleFind = async () => {
     setIsLoading(true);
-    setResponse("");
+    setResponse(null);
     setPostUrl("");
 
     const env = environments.find(e => e.id === selectedEnvironment);
@@ -139,8 +141,13 @@ export default function FindReportPage() {
             body: jsonPayload,
         });
 
-        const responseData = await res.json();
-        setResponse(JSON.stringify(responseData, null, 2));
+        const responseText = await res.text();
+        try {
+            const responseData = JSON.parse(responseText);
+            setResponse(responseData);
+        } catch (e) {
+            setResponse(responseText);
+        }
 
     } catch (error: any) {
         setResponse(`Error: ${error.message}`);
@@ -254,17 +261,41 @@ export default function FindReportPage() {
             </CardContent>
         </Card>
         <Card>
-             <CardHeader>
+            <CardHeader>
                 <CardTitle>API Response</CardTitle>
                 <CardDescription>The response from the POST request will appear here.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Textarea
-                    value={isLoading ? "Loading..." : response}
-                    readOnly
-                    rows={12}
-                    className="font-mono text-sm"
-                />
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-[260px] text-muted-foreground">
+                        <p>Loading...</p>
+                    </div>
+                ) : response ? (
+                    typeof response === 'string' ? (
+                        <Textarea
+                            value={response}
+                            readOnly
+                            rows={12}
+                            className="font-mono text-sm"
+                        />
+                    ) : (
+                        <div className="p-2 rounded-md bg-secondary text-secondary-foreground overflow-auto max-h-[260px] text-sm font-mono">
+                            <JsonViewer 
+                                value={response} 
+                                theme="dark"
+                                style={{ backgroundColor: 'transparent' }}
+                            />
+                        </div>
+                    )
+                ) : (
+                    <Textarea
+                        value=""
+                        readOnly
+                        rows={12}
+                        placeholder="API response will be shown here."
+                        className="font-mono text-sm"
+                    />
+                )}
             </CardContent>
         </Card>
       </div>
