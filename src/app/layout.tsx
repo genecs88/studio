@@ -39,7 +39,7 @@ export default function RootLayout({
     if (pathname === '/') return 'Dashboard';
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
-    if (pathname === '/fr2') return 'Transfer Ownership';
+    if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     return 'Tech Support Tools';
   }
 
@@ -92,8 +92,8 @@ export default function RootLayout({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/fr2'}>
-                      <Link href="/fr2">
+                    <SidebarMenuButton asChild isActive={pathname === '/transfer-ownership'}>
+                      <Link href="/transfer-ownership">
                         <ArrowRightLeft />
                         Transfer Ownership
                       </Link>
