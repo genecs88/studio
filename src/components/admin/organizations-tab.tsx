@@ -28,7 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { organizations as initialOrganizations, environments, type Organization } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import AddOrganizationDialog from "./add-organization-dialog";
+import AddOrganizationDialog, { type NewOrganizationData } from "./add-organization-dialog";
 import EditOrganizationDialog from "./edit-organization-dialog";
 import {
   AlertDialog,
@@ -69,6 +69,18 @@ export default function OrganizationsTab() {
   const getEnvironmentName = (environmentId: string) => {
     const env = environments.find((e) => e.id === environmentId);
     return env ? env.name : "Unknown";
+  };
+  
+  const handleAddOrganization = (newOrgData: NewOrganizationData) => {
+    const newOrg: Organization = {
+      id: `org_${Date.now()}`,
+      name: newOrgData.name,
+      environmentId: newOrgData.environmentId,
+      patientIdentifiers: newOrgData.patientIdentifiers || [],
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setOrganizations(prevOrgs => [...prevOrgs, newOrg]);
+    setAddDialogOpen(false);
   };
 
   return (
@@ -142,7 +154,7 @@ export default function OrganizationsTab() {
             </Table>
           </CardContent>
         </Card>
-        <AddOrganizationDialog />
+        <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} />
       </Dialog>
       {selectedOrg && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>

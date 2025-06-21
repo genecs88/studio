@@ -46,7 +46,13 @@ const organizationSchema = z.object({
     .optional(),
 });
 
-export default function AddOrganizationDialog() {
+export type NewOrganizationData = z.infer<typeof organizationSchema>;
+
+interface AddOrganizationDialogProps {
+  onOrganizationAdded: (newOrg: NewOrganizationData) => void;
+}
+
+export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrganizationDialogProps) {
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -62,9 +68,7 @@ export default function AddOrganizationDialog() {
   });
 
   const onSubmit = (values: z.infer<typeof organizationSchema>) => {
-    console.log(values);
-    // Here you would typically handle form submission, e.g., call an API
-    alert("Organization added (see console for data).");
+    onOrganizationAdded(values);
     form.reset();
   };
 
