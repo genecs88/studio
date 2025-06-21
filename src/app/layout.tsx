@@ -25,6 +25,7 @@ import {
   Wrench,
   Search,
   ArrowRightLeft,
+  XCircle,
 } from "lucide-react";
 import { AppDataProvider } from '@/context/app-data-context';
 
@@ -40,6 +41,7 @@ export default function RootLayout({
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
+    if (pathname === '/cancel-report') return 'Cancel Report';
     return 'Tech Support Tools';
   }
 
@@ -96,6 +98,14 @@ export default function RootLayout({
                       <Link href="/transfer-ownership">
                         <ArrowRightLeft />
                         Transfer Ownership
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/cancel-report'}>
+                      <Link href="/cancel-report">
+                        <XCircle />
+                        Cancel Report
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wrench, Search, ArrowRightLeft } from 'lucide-react';
+import { Wrench, Search, ArrowRightLeft, XCircle } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -19,7 +19,7 @@ export default function HomePage() {
           Welcome to your Tech Support Tools dashboard. Choose a tool to get started.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-6 mt-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
         <Link href="/admin" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
@@ -60,6 +60,21 @@ export default function HomePage() {
                 <CardTitle>Transfer Ownership</CardTitle>
                 <CardDescription className="mt-1">
                   Transfer ownership of a report.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/cancel-report" className="block hover:no-underline">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <XCircle className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Cancel Report</CardTitle>
+                <CardDescription className="mt-1">
+                  Cancel a report that is in progress.
                 </CardDescription>
               </div>
             </CardHeader>
