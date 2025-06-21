@@ -1,8 +1,6 @@
+import { redirect } from 'next/navigation';
 
-"use client";
-
-// This page has been disabled to resolve a routing conflict. 
-// Please use the /admin route for the Admin Management page.
 export default function AdminManagementPage() {
-  return null;
+  // This page is a legacy route. We permanently redirect to the canonical /admin route.
+  redirect('/admin');
 }
