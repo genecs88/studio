@@ -27,6 +27,14 @@ export type OrgPath = {
   createdAt: string;
 };
 
+export type ApiAction = {
+  id: string;
+  key: string;
+  value: string;
+  environmentId: string;
+  createdAt: string;
+};
+
 export const organizations: Organization[] = [
   {
     id: "org_1",
@@ -79,4 +87,9 @@ export const orgPaths: OrgPath[] = [
     organizationId: "org_2",
     createdAt: "2023-04-05",
   },
+];
+
+export const apiActions: ApiAction[] = [
+    { id: "action_1", key: "default_model", value: "gemini-1.5-pro", environmentId: "env_1", createdAt: "2023-05-01" },
+    { id: "action_2", key: "timeout_ms", value: "30000", environmentId: "env_1", createdAt: "2023-05-02" },
 ];

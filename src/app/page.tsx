@@ -3,6 +3,7 @@ import OrganizationsTab from "@/components/admin/organizations-tab";
 import ApiKeysTab from "@/components/admin/api-keys-tab";
 import EnvironmentsTab from "@/components/admin/environments-tab";
 import OrgPathsTab from "@/components/admin/org-paths-tab";
+import ApiActionsTab from "@/components/admin/api-actions-tab";
 
 export default function AdminDashboard() {
   return (
@@ -13,11 +14,12 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
           <TabsTrigger value="environments">Environments</TabsTrigger>
           <TabsTrigger value="org-paths">Org Paths</TabsTrigger>
+          <TabsTrigger value="api-actions">API Actions</TabsTrigger>
         </TabsList>
         <TabsContent value="organizations">
             <OrganizationsTab />
@@ -30,6 +32,9 @@ export default function AdminDashboard() {
         </TabsContent>
         <TabsContent value="org-paths">
             <OrgPathsTab />
+        </TabsContent>
+        <TabsContent value="api-actions">
+            <ApiActionsTab />
         </TabsContent>
       </Tabs>
     </div>
