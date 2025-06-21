@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { apiKeys as initialApiKeys, type ApiKey } from "@/lib/placeholder-data";
+import { type ApiKey, type Organization, type Environment } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -43,9 +43,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-function ApiKeyRow({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (id: string) => void; }) {
+function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id: string) => void; onEdit: (apiKey: ApiKey) => void; }) {
     const [isVisible, setIsVisible] = useState(false);
-    const [isEditDialogOpen, setEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const { toast } = useToast();
 
@@ -95,24 +94,19 @@ function ApiKeyRow({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (id: string
             <TableCell>{apiKey.createdAt}</TableCell>
             <TableCell>
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                    <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
-                              </DialogTrigger>
-                              <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteDialogOpen(true)}>Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <EditApiKeyDialog apiKey={apiKey} onOpenChange={setEditDialogOpen} />
-                    </Dialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => onEdit(apiKey)}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteDialogOpen(true)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -131,13 +125,58 @@ function ApiKeyRow({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (id: string
     )
 }
 
+interface ApiKeysTabProps {
+    apiKeys: ApiKey[];
+    setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
+    organizations: Organization[];
+    environments: Environment[];
+    onApiKeyUpdated: (apiKey: ApiKey) => void;
+}
 
-export default function ApiKeysTab() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
+export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environments, onApiKeyUpdated }: ApiKeysTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
   
   const handleDeleteKey = (id: string) => {
     setApiKeys(apiKeys.filter(key => key.id !== id));
+  }
+
+  const handleEditClick = (apiKey: ApiKey) => {
+    setSelectedApiKey(apiKey);
+    setEditDialogOpen(true);
+  }
+
+  const handleAddApiKey = (newKeyData: { organizationId: string; environmentId: string; key: string }) => {
+    const org = organizations.find(o => o.id === newKeyData.organizationId);
+    const env = environments.find(e => e.id === newKeyData.environmentId);
+
+    if (org && env) {
+        const newKey: ApiKey = {
+          id: `key_${Date.now()}`,
+          key: newKeyData.key,
+          organization: org.name,
+          environment: env.name,
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+        setApiKeys(prevKeys => [...prevKeys, newKey]);
+        setAddDialogOpen(false);
+    }
+  };
+
+  const handleApiKeyUpdated = (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {
+      const org = organizations.find(o => o.id === updatedKey.organizationId);
+      const env = environments.find(e => e.id === updatedKey.environmentId);
+      const originalKey = apiKeys.find(k => k.id === updatedKey.id);
+
+      if (org && env && originalKey) {
+          onApiKeyUpdated({
+              ...updatedKey,
+              organization: org.name,
+              environment: env.name,
+              createdAt: originalKey.createdAt,
+          });
+      }
   }
 
   return (
@@ -178,15 +217,27 @@ export default function ApiKeysTab() {
                 </TableHeader>
                 <TableBody>
                     {apiKeys.map((key) => (
-                        <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} />
+                        <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} onEdit={handleEditClick} />
                     ))}
                 </TableBody>
                 </Table>
             </div>
           </CardContent>
         </Card>
-        <AddApiKeyDialog />
+        <AddApiKeyDialog onApiKeyAdded={handleAddApiKey} organizations={organizations} environments={environments} />
       </Dialog>
+
+      {selectedApiKey && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+            <EditApiKeyDialog 
+                apiKey={selectedApiKey} 
+                onOpenChange={setEditDialogOpen} 
+                organizations={organizations} 
+                environments={environments}
+                onApiKeyUpdated={handleApiKeyUpdated}
+            />
+        </Dialog>
+      )}
     </>
   );
 }

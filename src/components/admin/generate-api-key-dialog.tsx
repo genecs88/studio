@@ -30,8 +30,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  environments,
-  organizations,
+  type Environment,
   type Organization,
 } from "@/lib/placeholder-data";
 
@@ -41,7 +40,13 @@ const apiKeySchema = z.object({
   key: z.string().min(1, "API Key is required"),
 });
 
-export default function AddApiKeyDialog() {
+interface AddApiKeyDialogProps {
+    onApiKeyAdded: (newKey: { organizationId: string; environmentId: string; key: string }) => void;
+    organizations: Organization[];
+    environments: Environment[];
+}
+
+export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environments }: AddApiKeyDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
@@ -67,11 +72,10 @@ export default function AddApiKeyDialog() {
     } else {
       setFilteredOrganizations([]);
     }
-  }, [selectedEnvironmentId, form]);
+  }, [selectedEnvironmentId, form, organizations]);
 
   const onSubmit = (values: z.infer<typeof apiKeySchema>) => {
-    console.log(values);
-    alert("API Key added (see console for data).");
+    onApiKeyAdded(values);
     form.reset();
     setFilteredOrganizations([]);
   };

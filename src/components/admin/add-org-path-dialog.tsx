@@ -29,7 +29,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { organizations, environments, type Organization } from "@/lib/placeholder-data";
+import { type Organization, type Environment } from "@/lib/placeholder-data";
 
 const orgPathSchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
@@ -39,9 +39,11 @@ const orgPathSchema = z.object({
 
 interface AddOrgPathDialogProps {
     onOrgPathAdded: (newPath: { organizationId: string; path: string; }) => void;
+    organizations: Organization[];
+    environments: Environment[];
 }
 
-export default function AddOrgPathDialog({ onOrgPathAdded }: AddOrgPathDialogProps) {
+export default function AddOrgPathDialog({ onOrgPathAdded, organizations, environments }: AddOrgPathDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
 
   const form = useForm<z.infer<typeof orgPathSchema>>({
@@ -65,7 +67,7 @@ export default function AddOrgPathDialog({ onOrgPathAdded }: AddOrgPathDialogPro
     } else {
       setFilteredOrganizations([]);
     }
-  }, [selectedEnvironmentId, form]);
+  }, [selectedEnvironmentId, form, organizations]);
 
   const onSubmit = (values: z.infer<typeof orgPathSchema>) => {
     onOrgPathAdded({ organizationId: values.organizationId, path: values.path });

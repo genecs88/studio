@@ -28,7 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { environments } from "@/lib/placeholder-data";
+import { type Environment } from "@/lib/placeholder-data";
 
 const apiActionSchema = z.object({
   key: z.string().min(1, "Key name is required"),
@@ -36,8 +36,15 @@ const apiActionSchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
 });
 
-export default function AddApiActionDialog() {
-  const form = useForm<z.infer<typeof apiActionSchema>>({
+type ApiActionFormValues = z.infer<typeof apiActionSchema>;
+
+interface AddApiActionDialogProps {
+    onApiActionAdded: (newAction: ApiActionFormValues) => void;
+    environments: Environment[];
+}
+
+export default function AddApiActionDialog({ onApiActionAdded, environments }: AddApiActionDialogProps) {
+  const form = useForm<ApiActionFormValues>({
     resolver: zodResolver(apiActionSchema),
     defaultValues: {
       key: "",
@@ -46,9 +53,8 @@ export default function AddApiActionDialog() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof apiActionSchema>) => {
-    console.log(values);
-    alert("API Action added (see console for data).");
+  const onSubmit = (values: ApiActionFormValues) => {
+    onApiActionAdded(values);
     form.reset();
   };
 

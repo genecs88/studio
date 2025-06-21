@@ -29,7 +29,7 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { environments } from "@/lib/placeholder-data";
+import { type Environment } from "@/lib/placeholder-data";
 import { PlusCircle, X } from "lucide-react";
 
 const organizationSchema = z.object({
@@ -50,9 +50,10 @@ export type NewOrganizationData = z.infer<typeof organizationSchema>;
 
 interface AddOrganizationDialogProps {
   onOrganizationAdded: (newOrg: NewOrganizationData) => void;
+  environments: Environment[];
 }
 
-export default function AddOrganizationDialog({ onOrganizationAdded }: AddOrganizationDialogProps) {
+export default function AddOrganizationDialog({ onOrganizationAdded, environments }: AddOrganizationDialogProps) {
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {

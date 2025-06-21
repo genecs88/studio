@@ -28,7 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { environments, type ApiAction } from "@/lib/placeholder-data";
+import { type ApiAction, type Environment } from "@/lib/placeholder-data";
 
 const apiActionSchema = z.object({
   key: z.string().min(1, "Key name is required"),
@@ -36,13 +36,17 @@ const apiActionSchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
 });
 
+type ApiActionFormValues = z.infer<typeof apiActionSchema>;
+
 interface EditApiActionDialogProps {
   apiAction: ApiAction;
+  environments: Environment[];
   onOpenChange: (open: boolean) => void;
+  onApiActionUpdated: (updatedAction: Omit<ApiAction, 'createdAt'>) => void;
 }
 
-export default function EditApiActionDialog({ apiAction, onOpenChange }: EditApiActionDialogProps) {
-  const form = useForm<z.infer<typeof apiActionSchema>>({
+export default function EditApiActionDialog({ apiAction, environments, onOpenChange, onApiActionUpdated }: EditApiActionDialogProps) {
+  const form = useForm<ApiActionFormValues>({
     resolver: zodResolver(apiActionSchema),
     defaultValues: {
       key: apiAction.key,
@@ -59,9 +63,8 @@ export default function EditApiActionDialog({ apiAction, onOpenChange }: EditApi
     });
   }, [apiAction, form]);
 
-  const onSubmit = (values: z.infer<typeof apiActionSchema>) => {
-    console.log("Updated values:", { id: apiAction.id, ...values });
-    alert("API Action updated (see console for data).");
+  const onSubmit = (values: ApiActionFormValues) => {
+    onApiActionUpdated({ id: apiAction.id, ...values });
     onOpenChange(false);
   };
 

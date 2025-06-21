@@ -28,7 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { organizations, environments, type OrgPath, type Organization } from "@/lib/placeholder-data";
+import { type Organization, type OrgPath, type Environment } from "@/lib/placeholder-data";
 
 const orgPathSchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
@@ -36,18 +36,23 @@ const orgPathSchema = z.object({
   path: z.string().min(1, "Org path data is required"),
 });
 
+type OrgPathFormValues = z.infer<typeof orgPathSchema>;
+
 interface EditOrgPathDialogProps {
   orgPath: OrgPath;
+  organizations: Organization[];
+  environments: Environment[];
   onOpenChange: (open: boolean) => void;
+  onOrgPathUpdated: (updatedOrgPath: Omit<OrgPath, 'createdAt'>) => void;
 }
 
-export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPathDialogProps) {
+export default function EditOrgPathDialog({ orgPath, organizations, environments, onOpenChange, onOrgPathUpdated }: EditOrgPathDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
   
   const initialOrg = organizations.find(o => o.id === orgPath.organizationId);
   const initialEnvId = initialOrg ? initialOrg.environmentId : "";
 
-  const form = useForm<z.infer<typeof orgPathSchema>>({
+  const form = useForm<OrgPathFormValues>({
     resolver: zodResolver(orgPathSchema),
     defaultValues: {
       environmentId: initialEnvId,
@@ -66,7 +71,7 @@ export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPath
       organizationId: orgPath.organizationId,
       path: orgPath.path,
     });
-  }, [orgPath, form]);
+  }, [orgPath, form, organizations]);
   
   useEffect(() => {
     if (selectedEnvironmentId) {
@@ -83,11 +88,10 @@ export default function EditOrgPathDialog({ orgPath, onOpenChange }: EditOrgPath
       setFilteredOrganizations([]);
       form.setValue("organizationId", "");
     }
-  }, [selectedEnvironmentId, form]);
+  }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: z.infer<typeof orgPathSchema>) => {
-    console.log("Updated values:", { id: orgPath.id, ...values });
-    alert("Org Path updated (see console for data).");
+  const onSubmit = (values: OrgPathFormValues) => {
+    onOrgPathUpdated({ id: orgPath.id, organizationId: values.organizationId, path: values.path });
     onOpenChange(false);
   };
 

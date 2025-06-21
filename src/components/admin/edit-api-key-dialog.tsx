@@ -29,8 +29,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  environments,
-  organizations,
+  type Environment,
   type Organization,
   type ApiKey,
 } from "@/lib/placeholder-data";
@@ -41,18 +40,23 @@ const apiKeySchema = z.object({
   key: z.string().min(1, "API Key is required"),
 });
 
+type ApiKeyFormValues = z.infer<typeof apiKeySchema>;
+
 interface EditApiKeyDialogProps {
     apiKey: ApiKey;
+    organizations: Organization[];
+    environments: Environment[];
     onOpenChange: (open: boolean) => void;
+    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => void;
 }
 
-const findOrgId = (name: string) => organizations.find(o => o.name === name)?.id;
-const findEnvId = (name: string) => environments.find(e => e.name === name)?.id;
-
-export default function EditApiKeyDialog({ apiKey, onOpenChange }: EditApiKeyDialogProps) {
+export default function EditApiKeyDialog({ apiKey, organizations, environments, onOpenChange, onApiKeyUpdated }: EditApiKeyDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
   
-  const form = useForm<z.infer<typeof apiKeySchema>>({
+  const findOrgId = (name: string) => organizations.find(o => o.name === name)?.id;
+  const findEnvId = (name: string) => environments.find(e => e.name === name)?.id;
+
+  const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
       environmentId: findEnvId(apiKey.environment) || "",
@@ -69,7 +73,7 @@ export default function EditApiKeyDialog({ apiKey, onOpenChange }: EditApiKeyDia
       organizationId: findOrgId(apiKey.organization) || "",
       key: apiKey.key,
     });
-  }, [apiKey, form]);
+  }, [apiKey, form, organizations, environments]);
 
   useEffect(() => {
     if (selectedEnvironmentId) {
@@ -86,11 +90,10 @@ export default function EditApiKeyDialog({ apiKey, onOpenChange }: EditApiKeyDia
       setFilteredOrganizations([]);
       form.setValue("organizationId", "");
     }
-  }, [selectedEnvironmentId, form]);
+  }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: z.infer<typeof apiKeySchema>) => {
-    console.log("Updated values:", { id: apiKey.id, ...values });
-    alert("API Key updated (see console for data).");
+  const onSubmit = (values: ApiKeyFormValues) => {
+    onApiKeyUpdated({ id: apiKey.id, ...values });
     onOpenChange(false);
   };
 

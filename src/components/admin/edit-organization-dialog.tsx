@@ -29,7 +29,7 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { environments, type Organization } from "@/lib/placeholder-data";
+import { type Environment, type Organization } from "@/lib/placeholder-data";
 import { PlusCircle, X } from "lucide-react";
 
 const organizationSchema = z.object({
@@ -48,10 +48,12 @@ const organizationSchema = z.object({
 
 interface EditOrganizationDialogProps {
   organization: Organization;
+  environments: Environment[];
   onOpenChange: (open: boolean) => void;
+  onOrganizationUpdated: (updatedOrg: Omit<Organization, 'createdAt'>) => void;
 }
 
-export default function EditOrganizationDialog({ organization, onOpenChange }: EditOrganizationDialogProps) {
+export default function EditOrganizationDialog({ organization, environments, onOpenChange, onOrganizationUpdated }: EditOrganizationDialogProps) {
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -75,8 +77,7 @@ export default function EditOrganizationDialog({ organization, onOpenChange }: E
   });
 
   const onSubmit = (values: z.infer<typeof organizationSchema>) => {
-    console.log("Updated values:", { id: organization.id, ...values });
-    alert("Organization updated (see console for data).");
+    onOrganizationUpdated({ id: organization.id, ...values });
     onOpenChange(false);
   };
 

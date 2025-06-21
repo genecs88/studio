@@ -25,7 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { orgPaths as initialOrgPaths, organizations, type OrgPath } from "@/lib/placeholder-data";
+import { type Organization, type OrgPath, type Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrgPathDialog from "./add-org-path-dialog";
 import { Badge } from "../ui/badge";
@@ -41,8 +41,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function OrgPathsTab() {
-  const [orgPaths, setOrgPaths] = useState<OrgPath[]>(initialOrgPaths);
+interface OrgPathsTabProps {
+  orgPaths: OrgPath[];
+  setOrgPaths: React.Dispatch<React.SetStateAction<OrgPath[]>>;
+  organizations: Organization[];
+  environments: Environment[];
+  onOrgPathUpdated: (updatedOrgPath: OrgPath) => void;
+}
+
+export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, environments, onOrgPathUpdated }: OrgPathsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -71,7 +78,7 @@ export default function OrgPathsTab() {
     return org ? org.name : "Unknown";
   };
   
-  const handleAddOrgPath = (newPathData: { organizationId: string; path: string }) => {
+  const handleAddOrgPath = (newPathData: { organizationId: string; path: string; }) => {
     const newPath: OrgPath = {
       id: `path_${Date.now()}`,
       ...newPathData,
@@ -79,6 +86,13 @@ export default function OrgPathsTab() {
     };
     setOrgPaths(prevPaths => [...prevPaths, newPath]);
     setAddDialogOpen(false);
+  };
+  
+  const handleOrgPathUpdated = (updatedPathData: Omit<OrgPath, 'createdAt'>) => {
+    const originalPath = orgPaths.find(p => p.id === updatedPathData.id);
+    if(originalPath) {
+        onOrgPathUpdated({ ...updatedPathData, createdAt: originalPath.createdAt });
+    }
   };
 
   return (
@@ -155,11 +169,17 @@ export default function OrgPathsTab() {
             </Table>
           </CardContent>
         </Card>
-        <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} />
+        <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} organizations={organizations} environments={environments} />
       </Dialog>
       {selectedPath && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-            <EditOrgPathDialog orgPath={selectedPath} onOpenChange={setEditDialogOpen} />
+            <EditOrgPathDialog 
+                orgPath={selectedPath} 
+                onOpenChange={setEditDialogOpen}
+                organizations={organizations}
+                environments={environments}
+                onOrgPathUpdated={handleOrgPathUpdated}
+            />
         </Dialog>
       )}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

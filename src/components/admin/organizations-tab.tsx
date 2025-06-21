@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { organizations as initialOrganizations, environments, type Organization } from "@/lib/placeholder-data";
+import { type Environment, type Organization } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrganizationDialog, { type NewOrganizationData } from "./add-organization-dialog";
 import EditOrganizationDialog from "./edit-organization-dialog";
@@ -41,8 +41,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function OrganizationsTab() {
-  const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
+interface OrganizationsTabProps {
+  organizations: Organization[];
+  setOrganizations: React.Dispatch<React.SetStateAction<Organization[]>>;
+  environments: Environment[];
+  onOrganizationUpdated: (updatedOrg: Organization) => void;
+}
+
+export default function OrganizationsTab({ organizations, setOrganizations, environments, onOrganizationUpdated }: OrganizationsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -81,6 +87,13 @@ export default function OrganizationsTab() {
     };
     setOrganizations(prevOrgs => [...prevOrgs, newOrg]);
     setAddDialogOpen(false);
+  };
+  
+  const handleOrganizationUpdated = (updatedOrgData: Omit<Organization, 'createdAt'>) => {
+    const originalOrg = organizations.find(org => org.id === updatedOrgData.id);
+    if (originalOrg) {
+      onOrganizationUpdated({ ...updatedOrgData, createdAt: originalOrg.createdAt });
+    }
   };
 
   return (
@@ -154,11 +167,16 @@ export default function OrganizationsTab() {
             </Table>
           </CardContent>
         </Card>
-        <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} />
+        <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} environments={environments} />
       </Dialog>
       {selectedOrg && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-          <EditOrganizationDialog organization={selectedOrg} onOpenChange={setEditDialogOpen} />
+          <EditOrganizationDialog 
+            organization={selectedOrg} 
+            onOpenChange={setEditDialogOpen}
+            environments={environments}
+            onOrganizationUpdated={handleOrganizationUpdated}
+          />
         </Dialog>
       )}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

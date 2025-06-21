@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { environments as initialEnvironments, type Environment } from "@/lib/placeholder-data";
+import { type Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddEnvironmentDialog from "./add-environment-dialog";
 import EditEnvironmentDialog from "./edit-environment-dialog";
@@ -45,8 +45,13 @@ const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
     return <Globe className="h-5 w-5 text-muted-foreground" />;
 }
 
-export default function EnvironmentsTab() {
-  const [environments, setEnvironments] = useState<Environment[]>(initialEnvironments);
+interface EnvironmentsTabProps {
+  environments: Environment[];
+  setEnvironments: React.Dispatch<React.SetStateAction<Environment[]>>;
+  onEnvironmentUpdated: (updatedEnv: Environment) => void;
+}
+
+export default function EnvironmentsTab({ environments, setEnvironments, onEnvironmentUpdated }: EnvironmentsTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -153,7 +158,7 @@ export default function EnvironmentsTab() {
       </Dialog>
       {selectedEnv && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} />
+            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} onEnvironmentUpdated={onEnvironmentUpdated} />
         </Dialog>
       )}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

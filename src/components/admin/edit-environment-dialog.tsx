@@ -31,9 +31,10 @@ const environmentSchema = z.object({
 interface EditEnvironmentDialogProps {
   environment: Environment;
   onOpenChange: (open: boolean) => void;
+  onEnvironmentUpdated: (updatedEnv: Environment) => void;
 }
 
-export default function EditEnvironmentDialog({ environment, onOpenChange }: EditEnvironmentDialogProps) {
+export default function EditEnvironmentDialog({ environment, onOpenChange, onEnvironmentUpdated }: EditEnvironmentDialogProps) {
   const form = useForm<z.infer<typeof environmentSchema>>({
     resolver: zodResolver(environmentSchema),
     defaultValues: {
@@ -50,8 +51,7 @@ export default function EditEnvironmentDialog({ environment, onOpenChange }: Edi
   }, [environment, form]);
 
   const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    console.log("Updated values:", { id: environment.id, ...values });
-    alert("Environment updated (see console for data).");
+    onEnvironmentUpdated({ ...environment, ...values });
     onOpenChange(false);
   };
 
