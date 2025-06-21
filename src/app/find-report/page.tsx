@@ -104,7 +104,7 @@ export default function FindReportPage() {
     setJsonPayload(JSON.stringify(payload, null, 2));
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.environmentId === selectedEnvironment && a.key === 'FIND');
+    const findAction = apiActions.find(a => a.key === 'FIND');
     
     if (env && findAction) {
         setConstructedPostUrl(`${env.url}${findAction.value}`);
@@ -118,7 +118,7 @@ export default function FindReportPage() {
     setResponse(null);
 
     const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.environmentId === selectedEnvironment && a.key === 'FIND');
+    const findAction = apiActions.find(a => a.key === 'FIND');
     const org = organizations.find(o => o.id === selectedOrganization);
     
     if(!env || !findAction || !org) {
