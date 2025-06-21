@@ -36,7 +36,7 @@ export default function RootLayout({
   
   const getPageTitle = () => {
     if (pathname === '/') return 'Dashboard';
-    if (pathname.startsWith('/admin-management')) return 'Admin Management';
+    if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
     return 'Tech Support Tools';
   }
@@ -74,8 +74,8 @@ export default function RootLayout({
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin-management')}>
-                      <Link href="/admin-management">
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')}>
+                      <Link href="/admin">
                         <Wrench />
                         Admin Management
                       </Link>
