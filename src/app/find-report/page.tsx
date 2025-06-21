@@ -18,16 +18,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Dialog } from "@/components/ui/dialog";
+import AddOrganizationDialog, { type NewOrganizationData } from "@/components/admin/add-organization-dialog";
+import AddOrgPathDialog from "@/components/admin/add-org-path-dialog";
+import { type Organization, type OrgPath } from "@/lib/placeholder-data";
 
 
 export default function FindReportPage() {
-  const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
+  const { environments, organizations, apiKeys, orgPaths, apiActions, setOrganizations, setOrgPaths } = useAppData();
 
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
@@ -37,6 +42,8 @@ export default function FindReportPage() {
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [constructedPostUrl, setConstructedPostUrl] = useState("");
+  const [isAddOrgDialogOpen, setIsAddOrgDialogOpen] = useState(false);
+  const [isAddOrgPathDialogOpen, setIsAddOrgPathDialogOpen] = useState(false);
 
   const filteredOrganizations = useMemo(() => {
     if (!selectedEnvironment) return [];
@@ -62,10 +69,26 @@ export default function FindReportPage() {
   };
 
   const handleOrganizationChange = (value: string) => {
+    if (value === 'add-new') {
+        setIsAddOrgDialogOpen(true);
+        return;
+    }
     setSelectedOrganization(value);
     setSelectedOrgPath("");
     setConstructedPostUrl("");
   };
+  
+  const handleOrgPathChange = (value: string) => {
+    if (value === 'add-new') {
+      if (!selectedOrganization) {
+        alert("Please select an organization first.");
+        return;
+      }
+      setIsAddOrgPathDialogOpen(true);
+      return;
+    }
+    setSelectedOrgPath(value);
+  }
   
   const handleReset = () => {
     setSelectedEnvironment("");
@@ -165,6 +188,31 @@ export default function FindReportPage() {
     }
   };
 
+  const handleAddOrganization = (newOrgData: NewOrganizationData) => {
+    const newOrg: Organization = {
+      id: `org_${Date.now()}`,
+      name: newOrgData.name,
+      environmentId: newOrgData.environmentId,
+      studyIdentifiers: newOrgData.studyIdentifiers || [],
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setOrganizations(prevOrgs => [...prevOrgs, newOrg]);
+    setIsAddOrgDialogOpen(false);
+    setSelectedOrganization(newOrg.id);
+    setSelectedOrgPath("");
+  };
+  
+  const handleAddOrgPath = (newPathData: { organizationId: string; path: string; }) => {
+    const newPath: OrgPath = {
+      id: `path_${Date.now()}`,
+      ...newPathData,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setOrgPaths(prevPaths => [...prevPaths, newPath]);
+    setIsAddOrgPathDialogOpen(false);
+    setSelectedOrgPath(newPath.id);
+  };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -204,10 +252,12 @@ export default function FindReportPage() {
                           {org.name}
                       </SelectItem>
                       ))}
+                      <SelectSeparator />
+                      <SelectItem value="add-new" className="font-medium text-primary">Add New Organization...</SelectItem>
                   </SelectContent>
                 </Select>
                 
-                <Select value={selectedOrgPath} onValueChange={setSelectedOrgPath} disabled={!selectedOrganization}>
+                <Select value={selectedOrgPath} onValueChange={handleOrgPathChange} disabled={!selectedOrganization}>
                   <SelectTrigger id="org-path">
                       <SelectValue placeholder="Select Org Path" />
                   </SelectTrigger>
@@ -217,6 +267,8 @@ export default function FindReportPage() {
                           {path.path}
                       </SelectItem>
                       ))}
+                      <SelectSeparator />
+                      <SelectItem value="add-new" className="font-medium text-primary">Add New Org Path...</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -305,6 +357,20 @@ export default function FindReportPage() {
             </p>
         </div>
       )}
+
+      <Dialog open={isAddOrgDialogOpen} onOpenChange={setIsAddOrgDialogOpen}>
+        <AddOrganizationDialog 
+            onOrganizationAdded={handleAddOrganization} 
+            environments={environments} 
+        />
+      </Dialog>
+      <Dialog open={isAddOrgPathDialogOpen} onOpenChange={setIsAddOrgPathDialogOpen}>
+        <AddOrgPathDialog 
+            onOrgPathAdded={handleAddOrgPath} 
+            organizations={organizations} 
+            environments={environments} 
+        />
+      </Dialog>
     </div>
   );
 }
