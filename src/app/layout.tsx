@@ -1,6 +1,10 @@
+
+"use client";
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { usePathname } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -18,21 +22,28 @@ import {
   Home,
   Settings,
   Wrench,
+  Search,
 } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: 'Tech Support Tools',
-  description: 'A suite of tools for tech support.',
-};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  
+  // This is a temporary approach for the prototype's metadata.
+  // In a real app, you'd handle this more dynamically.
+  const getPageTitle = () => {
+    if (pathname === '/find-report') return 'Find Report';
+    return 'Admin Management';
+  }
+
   return (
     <html lang="en" className="dark">
       <head>
+        <title>{getPageTitle()}</title>
+        <meta name="description" content="A suite of tools for tech support." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -52,9 +63,15 @@ export default function RootLayout({
             <SidebarContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton href="/" isActive>
+                  <SidebarMenuButton href="/" isActive={pathname === '/' || pathname.startsWith('/admin')}>
                     <Home />
-                    Dashboard
+                    Admin Dashboard
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton href="/find-report" isActive={pathname === '/find-report'}>
+                    <Search />
+                    Find Report
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
@@ -97,3 +114,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
