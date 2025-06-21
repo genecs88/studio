@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Home,
+  LayoutGrid,
   Settings,
   Wrench,
   Search,
@@ -34,11 +34,10 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   
-  // This is a temporary approach for the prototype's metadata.
-  // In a real app, you'd handle this more dynamically.
   const getPageTitle = () => {
+    if (pathname === '/') return 'Dashboard';
+    if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
-    if (pathname === '/' || pathname.startsWith('/admin')) return 'Admin Management';
     return 'Tech Support Tools';
   }
 
@@ -67,10 +66,18 @@ export default function RootLayout({
               <SidebarContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/' || pathname.startsWith('/admin')}>
+                    <SidebarMenuButton asChild isActive={pathname === '/'}>
                       <Link href="/">
-                        <Home />
-                        Admin Dashboard
+                        <LayoutGrid />
+                        Dashboard
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')}>
+                      <Link href="/admin">
+                        <Wrench />
+                        Admin Management
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

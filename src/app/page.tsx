@@ -1,75 +1,56 @@
 
-"use client";
+import Link from 'next/link';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Wrench, Search } from 'lucide-react';
 
-import { useAppData } from "@/context/app-data-context";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import OrganizationsTab from "@/components/admin/organizations-tab";
-import ApiKeysTab from "@/components/admin/api-keys-tab";
-import EnvironmentsTab from "@/components/admin/environments-tab";
-import OrgPathsTab from "@/components/admin/org-paths-tab";
-import ApiActionsTab from "@/components/admin/api-actions-tab";
-
-export default function AdminDashboard() {
-  const {
-    environments, setEnvironments,
-    organizations, setOrganizations,
-    apiKeys, setApiKeys,
-    orgPaths, setOrgPaths,
-    apiActions, setApiActions
-  } = useAppData();
-
+export default function HomePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Admin Management</h1>
-        <p className="text-muted-foreground">Access various tools and utilities for tech support.</p>
+        <h1 className="text-3xl font-bold font-headline tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-muted-foreground">
+          Welcome to your Tech Support Tools dashboard. Choose a tool to get started.
+        </p>
       </div>
-
-      <Tabs defaultValue="environments" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="environments">Environments</TabsTrigger>
-          <TabsTrigger value="organizations">Organizations</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="org-paths">Org Paths</TabsTrigger>
-          <TabsTrigger value="api-actions">API Actions</TabsTrigger>
-        </TabsList>
-        <TabsContent value="environments">
-            <EnvironmentsTab 
-              environments={environments}
-              setEnvironments={setEnvironments}
-            />
-        </TabsContent>
-        <TabsContent value="organizations">
-            <OrganizationsTab
-              organizations={organizations}
-              setOrganizations={setOrganizations}
-              environments={environments}
-            />
-        </TabsContent>
-        <TabsContent value="api-keys">
-            <ApiKeysTab
-              apiKeys={apiKeys}
-              setApiKeys={setApiKeys}
-              organizations={organizations}
-              environments={environments}
-            />
-        </TabsContent>
-        <TabsContent value="org-paths">
-            <OrgPathsTab
-              orgPaths={orgPaths}
-              setOrgPaths={setOrgPaths}
-              organizations={organizations}
-              environments={environments}
-            />
-        </TabsContent>
-        <TabsContent value="api-actions">
-            <ApiActionsTab 
-              apiActions={apiActions}
-              setApiActions={setApiActions}
-              environments={environments}
-            />
-        </TabsContent>
-      </Tabs>
+      <div className="grid md:grid-cols-2 gap-6 mt-4">
+        <Link href="/admin" className="block hover:no-underline">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Wrench className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Admin Management</CardTitle>
+                <CardDescription className="mt-1">
+                  Manage environments, organizations, and API keys.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/find-report" className="block hover:no-underline">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Search className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Find Report</CardTitle>
+                <CardDescription className="mt-1">
+                  Construct and send POST requests to find reports.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+      </div>
     </div>
-  )
+  );
 }
