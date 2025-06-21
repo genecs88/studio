@@ -36,6 +36,7 @@ export default function FindReportPage() {
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [constructedPostUrl, setConstructedPostUrl] = useState("");
 
   const filteredOrganizations = useMemo(() => {
     if (!selectedEnvironment) return [];
@@ -57,11 +58,13 @@ export default function FindReportPage() {
     setSelectedEnvironment(value);
     setSelectedOrganization("");
     setSelectedOrgPath("");
+    setConstructedPostUrl("");
   };
 
   const handleOrganizationChange = (value: string) => {
     setSelectedOrganization(value);
     setSelectedOrgPath("");
+    setConstructedPostUrl("");
   };
   
   const handleReset = () => {
@@ -72,6 +75,7 @@ export default function FindReportPage() {
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
+    setConstructedPostUrl("");
   };
 
   const handleCreateJson = () => {
@@ -98,6 +102,15 @@ export default function FindReportPage() {
     }
 
     setJsonPayload(JSON.stringify(payload, null, 2));
+
+    const env = environments.find(e => e.id === selectedEnvironment);
+    const findAction = apiActions.find(a => a.environmentId === selectedEnvironment && a.key === 'FIND');
+    
+    if (env && findAction) {
+        setConstructedPostUrl(`${env.url}${findAction.value}`);
+    } else {
+        setConstructedPostUrl("");
+    }
   };
   
   const handleFind = async () => {
@@ -114,7 +127,7 @@ export default function FindReportPage() {
         return;
     }
 
-    const constructedPostUrl = `${env.url}${findAction.value}`;
+    const urlToFetch = `${env.url}${findAction.value}`;
     
     const apiKeyData = apiKeys.find(k => {
         const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
@@ -128,7 +141,7 @@ export default function FindReportPage() {
     }
 
     try {
-        const res = await fetch(constructedPostUrl, {
+        const res = await fetch(urlToFetch, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -222,9 +235,18 @@ export default function FindReportPage() {
                 />
             </div>
         </CardContent>
-        <CardFooter className="justify-start gap-2">
-            <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
-            <Button onClick={handleReset} variant="outline">Reset</Button>
+        <CardFooter className="flex flex-col items-start gap-2">
+            <div className="flex gap-2">
+                <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
+                <Button onClick={handleReset} variant="outline">Reset</Button>
+            </div>
+            {constructedPostUrl && (
+                <div className="w-full p-2 mt-2 rounded-md bg-muted">
+                    <p className="text-sm font-mono text-muted-foreground break-all">
+                        {constructedPostUrl}
+                    </p>
+                </div>
+            )}
         </CardFooter>
       </Card>
       
