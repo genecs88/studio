@@ -33,6 +33,7 @@ export default function UpdateReportPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedOrgPath, setSelectedOrgPath] = useState("");
   const [accessionNumber, setAccessionNumber] = useState("");
+  const [status, setStatus] = useState("");
   const [jsonPayload, setJsonPayload] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +73,7 @@ export default function UpdateReportPage() {
     setSelectedOrganization("");
     setSelectedOrgPath("");
     setAccessionNumber("");
+    setStatus("");
     setJsonPayload("");
     setResponse(null);
     setIsLoading(false);
@@ -83,9 +85,14 @@ export default function UpdateReportPage() {
       alert("Please select an organization first.");
       return;
     }
+    if (!status) {
+      alert("Please select a status first.");
+      return;
+    }
 
     const payload: { [key: string]: any } = {};
 
+    payload.status = status;
     payload.accession_number = accessionNumber;
 
     if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
@@ -224,8 +231,30 @@ export default function UpdateReportPage() {
                     placeholder="Accession Number"
                     value={accessionNumber}
                     onChange={(e) => setAccessionNumber(e.target.value)}
-                    disabled={!selectedEnvironment}
+                    disabled={!selectedOrganization}
                 />
+            </div>
+            <div className="pt-2">
+                <Label className="font-semibold">Status</Label>
+                <RadioGroup
+                    value={status}
+                    onValueChange={setStatus}
+                    className="flex flex-wrap gap-x-6 gap-y-2 mt-2"
+                    disabled={!selectedOrganization}
+                >
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="DRAFT" id="status-draft" />
+                        <Label htmlFor="status-draft" className="font-normal cursor-pointer">
+                            DRAFT
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="CANCELLED" id="status-cancelled" />
+                        <Label htmlFor="status-cancelled" className="font-normal cursor-pointer">
+                            CANCELLED
+                        </Label>
+                    </div>
+                </RadioGroup>
             </div>
         </CardContent>
         <CardFooter>
