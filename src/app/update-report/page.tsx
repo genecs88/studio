@@ -169,7 +169,7 @@ export default function UpdateReportPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Update Report
+          Update Report Status
         </h1>
       </div>
 
@@ -293,7 +293,7 @@ export default function UpdateReportPage() {
 
       <div className="mt-2">
         <Button onClick={handleUpdateReport} disabled={isLoading || !jsonPayload} size="lg">
-            {isLoading ? 'Updating...' : 'Update Report'}
+            {isLoading ? 'Updating...' : 'Update Report Status'}
         </Button>
       </div>
       

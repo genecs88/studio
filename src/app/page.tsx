@@ -87,7 +87,7 @@ export default function HomePage() {
                 <FilePenLine className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Update Report</CardTitle>
+                <CardTitle>Update Report Status</CardTitle>
                 <CardDescription className="mt-1">
                   Update the status of a report.
                 </CardDescription>

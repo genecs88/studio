@@ -43,7 +43,7 @@ export default function RootLayout({
     if (pathname === '/find-report') return 'Find Report';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/cancel-report') return 'Cancel Report';
-    if (pathname === '/update-report') return 'Update Report';
+    if (pathname === '/update-report') return 'Update Report Status';
     return 'Tech Support Tools';
   }
 
@@ -115,7 +115,7 @@ export default function RootLayout({
                     <SidebarMenuButton asChild isActive={pathname === '/update-report'}>
                       <Link href="/update-report">
                         <FilePenLine />
-                        Update Report
+                        Update Report Status
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
