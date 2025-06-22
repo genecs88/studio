@@ -17,8 +17,8 @@ import {
   type OrgPath,
   type ApiAction,
   type User,
+  type NewOrganizationData,
 } from '@/lib/placeholder-data';
-import { type NewOrganizationData } from '@/components/admin/add-organization-dialog';
 
 interface AppDataContextType {
   isAuthenticated: boolean;

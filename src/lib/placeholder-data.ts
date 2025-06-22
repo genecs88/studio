@@ -7,6 +7,17 @@ export type Organization = {
   createdAt: string;
 };
 
+// This is the type that was causing a circular dependency.
+// It represents the data needed to create a new organization.
+export type NewOrganizationData = {
+  name: string;
+  environmentId: string;
+  studyIdentifiers?: {
+    key: string;
+    value: string;
+  }[];
+};
+
 export type ApiKey = {
   id: string;
   key: string;

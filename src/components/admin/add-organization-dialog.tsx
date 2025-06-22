@@ -30,7 +30,7 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Environment } from "@/lib/placeholder-data";
+import { type Environment, type NewOrganizationData } from "@/lib/placeholder-data";
 import { PlusCircle, X } from "lucide-react";
 
 const organizationSchema = z.object({
@@ -46,8 +46,6 @@ const organizationSchema = z.object({
     .max(4, "You can add up to 4 identifiers")
     .optional(),
 });
-
-export type NewOrganizationData = z.infer<typeof organizationSchema>;
 
 interface AddOrganizationDialogProps {
   onOrganizationAdded: (newOrg: NewOrganizationData) => Promise<void>;
