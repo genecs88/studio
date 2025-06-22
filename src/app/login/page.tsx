@@ -20,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setIsAuthenticated } = useAppData();
+  const { setIsAuthenticated, users } = useAppData();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,8 +29,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Mock authentication: Use environment variables in a real app
-    if (email === 'admin@techsupport.dev' && password === 'password') {
+    const user = users.find(
+      (user) => user.email === email && user.password === password
+    );
+
+    if (user) {
       setIsAuthenticated(true);
       router.push('/');
     } else {
