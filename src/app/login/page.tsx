@@ -98,7 +98,7 @@ export default function LoginPage() {
           </form>
         </Card>
          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Hint: Use admin@techsupport.dev / password</p>
+            <p>Hint: Use admin@radpair.com / 12345</p>
         </div>
       </div>
     </div>

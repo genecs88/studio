@@ -52,6 +52,13 @@ export const users: User[] = [
     password: "password",
     createdAt: "2023-01-01",
   },
+  {
+    id: "user_2",
+    name: "Permanent Admin",
+    email: "admin@radpair.com",
+    password: "12345",
+    createdAt: "2023-01-01",
+  },
 ];
 
 export const organizations: Organization[] = [
