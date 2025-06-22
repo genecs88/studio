@@ -116,5 +116,3 @@ export const apiActions: ApiAction[] = [
     { id: "action_5", key: "CANCEL", value: "/integrations/reports/cancel", environmentId: "env_1", createdAt: "2024-07-25" },
     { id: "action_6", key: "UPDATE", value: "/integrations/reports/status-update", environmentId: "env_1", createdAt: "2024-07-26" },
 ];
-
-    
