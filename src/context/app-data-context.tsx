@@ -16,6 +16,8 @@ import {
 } from '@/lib/placeholder-data';
 
 interface AppDataContextType {
+  isAuthenticated: boolean;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   environments: Environment[];
   setEnvironments: React.Dispatch<React.SetStateAction<Environment[]>>;
   organizations: Organization[];
@@ -31,6 +33,7 @@ interface AppDataContextType {
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [environments, setEnvironments] = useState<Environment[]>(initialEnvironments);
   const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
@@ -38,6 +41,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [apiActions, setApiActions] = useState<ApiAction[]>(initialApiActions);
 
   const value = {
+    isAuthenticated,
+    setIsAuthenticated,
     environments,
     setEnvironments,
     organizations,
