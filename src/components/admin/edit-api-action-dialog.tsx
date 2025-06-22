@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -42,7 +43,7 @@ interface EditApiActionDialogProps {
   apiAction: ApiAction;
   environments: Environment[];
   onOpenChange: (open: boolean) => void;
-  onApiActionUpdated: (updatedAction: Omit<ApiAction, 'createdAt'>) => void;
+  onApiActionUpdated: (updatedAction: Omit<ApiAction, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditApiActionDialog({ apiAction, environments, onOpenChange, onApiActionUpdated }: EditApiActionDialogProps) {
@@ -63,8 +64,8 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
     });
   }, [apiAction, form]);
 
-  const onSubmit = (values: ApiActionFormValues) => {
-    onApiActionUpdated({ id: apiAction.id, ...values });
+  const onSubmit = async (values: ApiActionFormValues) => {
+    await onApiActionUpdated({ id: apiAction.id, ...values });
     onOpenChange(false);
   };
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -43,7 +44,7 @@ interface EditOrgPathDialogProps {
   organizations: Organization[];
   environments: Environment[];
   onOpenChange: (open: boolean) => void;
-  onOrgPathUpdated: (updatedOrgPath: Omit<OrgPath, 'createdAt'>) => void;
+  onOrgPathUpdated: (updatedOrgPath: Omit<OrgPath, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditOrgPathDialog({ orgPath, organizations, environments, onOpenChange, onOrgPathUpdated }: EditOrgPathDialogProps) {
@@ -90,8 +91,8 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: OrgPathFormValues) => {
-    onOrgPathUpdated({ id: orgPath.id, organizationId: values.organizationId, path: values.path });
+  const onSubmit = async (values: OrgPathFormValues) => {
+    await onOrgPathUpdated({ id: orgPath.id, organizationId: values.organizationId, path: values.path });
     onOpenChange(false);
   };
 

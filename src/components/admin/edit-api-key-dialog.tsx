@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -47,20 +48,20 @@ interface EditApiKeyDialogProps {
     organizations: Organization[];
     environments: Environment[];
     onOpenChange: (open: boolean) => void;
-    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => void;
+    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => Promise<void>;
 }
 
 export default function EditApiKeyDialog({ apiKey, organizations, environments, onOpenChange, onApiKeyUpdated }: EditApiKeyDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
   
-  const findOrgId = (name: string) => organizations.find(o => o.name === name)?.id;
+  const findOrgId = (name: string, envId: string) => organizations.find(o => o.name === name && o.environmentId === envId)?.id;
   const findEnvId = (name: string) => environments.find(e => e.name === name)?.id;
 
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
       environmentId: findEnvId(apiKey.environment) || "",
-      organizationId: findOrgId(apiKey.organization) || "",
+      organizationId: "",
       key: apiKey.key,
     },
   });
@@ -68,9 +69,10 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
   const selectedEnvironmentId = form.watch("environmentId");
 
   useEffect(() => {
+    const envId = findEnvId(apiKey.environment) || "";
     form.reset({
-      environmentId: findEnvId(apiKey.environment) || "",
-      organizationId: findOrgId(apiKey.organization) || "",
+      environmentId: envId,
+      organizationId: findOrgId(apiKey.organization, envId) || "",
       key: apiKey.key,
     });
   }, [apiKey, form, organizations, environments]);
@@ -92,8 +94,8 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: ApiKeyFormValues) => {
-    onApiKeyUpdated({ id: apiKey.id, ...values });
+  const onSubmit = async (values: ApiKeyFormValues) => {
+    await onApiKeyUpdated({ id: apiKey.id, ...values });
     onOpenChange(false);
   };
 

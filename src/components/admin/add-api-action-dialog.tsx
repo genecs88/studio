@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -39,11 +40,12 @@ const apiActionSchema = z.object({
 type ApiActionFormValues = z.infer<typeof apiActionSchema>;
 
 interface AddApiActionDialogProps {
-    onApiActionAdded: (newAction: ApiActionFormValues) => void;
+    onApiActionAdded: (newAction: ApiActionFormValues) => Promise<void>;
     environments: Environment[];
+    closeDialog: () => void;
 }
 
-export default function AddApiActionDialog({ onApiActionAdded, environments }: AddApiActionDialogProps) {
+export default function AddApiActionDialog({ onApiActionAdded, environments, closeDialog }: AddApiActionDialogProps) {
   const form = useForm<ApiActionFormValues>({
     resolver: zodResolver(apiActionSchema),
     defaultValues: {
@@ -53,9 +55,10 @@ export default function AddApiActionDialog({ onApiActionAdded, environments }: A
     },
   });
 
-  const onSubmit = (values: ApiActionFormValues) => {
-    onApiActionAdded(values);
+  const onSubmit = async (values: ApiActionFormValues) => {
+    await onApiActionAdded(values);
     form.reset();
+    closeDialog();
   };
 
   return (

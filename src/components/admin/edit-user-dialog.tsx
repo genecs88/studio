@@ -35,7 +35,7 @@ type UserFormValues = z.infer<typeof userSchema>;
 interface EditUserDialogProps {
   user: User;
   onOpenChange: (open: boolean) => void;
-  onUserUpdated: (updatedUser: User) => void;
+  onUserUpdated: (updatedUser: User) => Promise<void>;
 }
 
 export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: EditUserDialogProps) {
@@ -56,7 +56,7 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
     });
   }, [user, form]);
 
-  const onSubmit = (values: UserFormValues) => {
+  const onSubmit = async (values: UserFormValues) => {
     const updatedUser: User = {
       ...user,
       name: values.name,
@@ -64,7 +64,7 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
       // Only update password if a new one is provided
       password: values.password ? values.password : user.password,
     };
-    onUserUpdated(updatedUser);
+    await onUserUpdated(updatedUser);
     onOpenChange(false);
   };
 

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { type Environment, type Organization } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import AddOrganizationDialog, { type NewOrganizationData } from "./add-organization-dialog";
+import AddOrganizationDialog from "./add-organization-dialog";
 import EditOrganizationDialog from "./edit-organization-dialog";
 import {
   AlertDialog,
@@ -44,11 +45,11 @@ import {
 
 interface OrganizationsTabProps {
   organizations: Organization[];
-  setOrganizations: React.Dispatch<React.SetStateAction<Organization[]>>;
   environments: Environment[];
 }
 
-export default function OrganizationsTab({ organizations, setOrganizations, environments }: OrganizationsTabProps) {
+export default function OrganizationsTab({ organizations, environments }: OrganizationsTabProps) {
+  const { addOrganization, updateOrganization, deleteOrganization } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -64,9 +65,9 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedOrg) {
-      setOrganizations(organizations.filter((org) => org.id !== selectedOrg.id));
+      await deleteOrganization(selectedOrg.id);
       setDeleteDialogOpen(false);
       setSelectedOrg(null);
     }
@@ -75,29 +76,6 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
   const getEnvironmentName = (environmentId: string) => {
     const env = environments.find((e) => e.id === environmentId);
     return env ? env.name : "Unknown";
-  };
-  
-  const handleAddOrganization = (newOrgData: NewOrganizationData) => {
-    const newOrg: Organization = {
-      id: `org_${Date.now()}`,
-      name: newOrgData.name,
-      environmentId: newOrgData.environmentId,
-      studyIdentifiers: newOrgData.studyIdentifiers || [],
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setOrganizations(prevOrgs => [...prevOrgs, newOrg]);
-    setAddDialogOpen(false);
-  };
-  
-  const onOrganizationUpdated = (updatedOrg: Organization) => {
-    setOrganizations(orgs => orgs.map(org => org.id === updatedOrg.id ? updatedOrg : org));
-  };
-  
-  const handleOrganizationUpdated = (updatedOrgData: Omit<Organization, 'createdAt'>) => {
-    const originalOrg = organizations.find(org => org.id === updatedOrgData.id);
-    if (originalOrg) {
-      onOrganizationUpdated({ ...updatedOrgData, createdAt: originalOrg.createdAt });
-    }
   };
 
   return (
@@ -120,7 +98,11 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
                   </span>
                 </Button>
               </DialogTrigger>
-              <AddOrganizationDialog onOrganizationAdded={handleAddOrganization} environments={environments} />
+              <AddOrganizationDialog 
+                onOrganizationAdded={addOrganization} 
+                environments={environments}
+                closeDialog={() => setAddDialogOpen(false)}
+              />
             </Dialog>
           </div>
         </CardHeader>
@@ -180,7 +162,7 @@ export default function OrganizationsTab({ organizations, setOrganizations, envi
             organization={selectedOrg} 
             onOpenChange={setEditDialogOpen}
             environments={environments}
-            onOrganizationUpdated={handleOrganizationUpdated}
+            onOrganizationUpdated={updateOrganization}
           />
         </Dialog>
       )}

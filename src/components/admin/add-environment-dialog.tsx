@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -21,6 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { type Environment } from "@/lib/placeholder-data";
 
 const environmentSchema = z.object({
   name: z.string().min(1, "Environment name is required"),
@@ -28,10 +30,11 @@ const environmentSchema = z.object({
 });
 
 interface AddEnvironmentDialogProps {
-  onEnvironmentAdded: (newEnv: z.infer<typeof environmentSchema>) => void;
+  onEnvironmentAdded: (newEnv: Omit<Environment, 'id'>) => Promise<void>;
+  closeDialog: () => void;
 }
 
-export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironmentDialogProps) {
+export default function AddEnvironmentDialog({ onEnvironmentAdded, closeDialog }: AddEnvironmentDialogProps) {
   const form = useForm<z.infer<typeof environmentSchema>>({
     resolver: zodResolver(environmentSchema),
     defaultValues: {
@@ -40,9 +43,10 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironm
     },
   });
 
-  const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    onEnvironmentAdded(values);
+  const onSubmit = async (values: z.infer<typeof environmentSchema>) => {
+    await onEnvironmentAdded(values);
     form.reset();
+    closeDialog();
   };
 
   return (

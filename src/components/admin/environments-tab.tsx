@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -48,10 +49,10 @@ const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
 
 interface EnvironmentsTabProps {
   environments: Environment[];
-  setEnvironments: React.Dispatch<React.SetStateAction<Environment[]>>;
 }
 
-export default function EnvironmentsTab({ environments, setEnvironments }: EnvironmentsTabProps) {
+export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) {
+  const { addEnvironment, updateEnvironment, deleteEnvironment } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -67,26 +68,12 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedEnv) {
-      setEnvironments(environments.filter((env) => env.id !== selectedEnv.id));
+      await deleteEnvironment(selectedEnv.id);
       setDeleteDialogOpen(false);
       setSelectedEnv(null);
     }
-  };
-
-  const handleAddEnvironment = (newEnvData: { name: string; url: string }) => {
-    const newEnv: Environment = {
-      id: `env_${Date.now()}`,
-      name: newEnvData.name,
-      url: newEnvData.url,
-    };
-    setEnvironments(prevEnvs => [...prevEnvs, newEnv]);
-    setAddDialogOpen(false);
-  };
-
-  const onEnvironmentUpdated = (updatedEnv: Environment) => {
-    setEnvironments(envs => envs.map(env => env.id === updatedEnv.id ? updatedEnv : env));
   };
 
   return (
@@ -109,7 +96,10 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
                   </span>
                 </Button>
               </DialogTrigger>
-              <AddEnvironmentDialog onEnvironmentAdded={handleAddEnvironment} />
+              <AddEnvironmentDialog 
+                onEnvironmentAdded={addEnvironment} 
+                closeDialog={() => setAddDialogOpen(false)} 
+              />
             </Dialog>
           </div>
         </CardHeader>
@@ -167,7 +157,7 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
       
       {selectedEnv && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} onEnvironmentUpdated={onEnvironmentUpdated} />
+            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} onEnvironmentUpdated={updateEnvironment} />
         </Dialog>
       )}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

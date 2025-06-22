@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,12 +42,13 @@ const apiKeySchema = z.object({
 });
 
 interface AddApiKeyDialogProps {
-    onApiKeyAdded: (newKey: { organizationId: string; environmentId: string; key: string }) => void;
+    onApiKeyAdded: (newKey: { organizationId: string; environmentId: string; key: string }) => Promise<void>;
     organizations: Organization[];
     environments: Environment[];
+    closeDialog: () => void;
 }
 
-export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environments }: AddApiKeyDialogProps) {
+export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environments, closeDialog }: AddApiKeyDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
@@ -74,10 +76,11 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: z.infer<typeof apiKeySchema>) => {
-    onApiKeyAdded(values);
+  const onSubmit = async (values: z.infer<typeof apiKeySchema>) => {
+    await onApiKeyAdded(values);
     form.reset();
     setFilteredOrganizations([]);
+    closeDialog();
   };
 
   return (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -38,12 +39,13 @@ const orgPathSchema = z.object({
 });
 
 interface AddOrgPathDialogProps {
-    onOrgPathAdded: (newPath: { organizationId: string; path: string; }) => void;
+    onOrgPathAdded: (newPath: { organizationId: string; path: string; }) => Promise<void>;
     organizations: Organization[];
     environments: Environment[];
+    closeDialog: () => void;
 }
 
-export default function AddOrgPathDialog({ onOrgPathAdded, organizations, environments }: AddOrgPathDialogProps) {
+export default function AddOrgPathDialog({ onOrgPathAdded, organizations, environments, closeDialog }: AddOrgPathDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
 
   const form = useForm<z.infer<typeof orgPathSchema>>({
@@ -69,10 +71,11 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: z.infer<typeof orgPathSchema>) => {
-    onOrgPathAdded({ organizationId: values.organizationId, path: values.path });
+  const onSubmit = async (values: z.infer<typeof orgPathSchema>) => {
+    await onOrgPathAdded({ organizationId: values.organizationId, path: values.path });
     form.reset();
     setFilteredOrganizations([]);
+    closeDialog();
   };
 
   return (

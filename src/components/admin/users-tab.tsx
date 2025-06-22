@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -43,10 +44,10 @@ import {
 
 interface UsersTabProps {
   users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
 
-export default function UsersTab({ users, setUsers }: UsersTabProps) {
+export default function UsersTab({ users }: UsersTabProps) {
+  const { addUser, updateUser, deleteUser } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,28 +63,12 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedUser) {
-      setUsers(users.filter((user) => user.id !== selectedUser.id));
+      await deleteUser(selectedUser.id);
       setDeleteDialogOpen(false);
       setSelectedUser(null);
     }
-  };
-
-  const handleAddUser = (newUserData: Omit<User, 'id' | 'createdAt'>) => {
-    const newUser: User = {
-      id: `user_${Date.now()}`,
-      ...newUserData,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setUsers((prevUsers) => [...prevUsers, newUser]);
-    setAddDialogOpen(false);
-  };
-
-  const handleUserUpdated = (updatedUser: User) => {
-    setUsers((users) =>
-      users.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-    );
   };
 
   return (
@@ -104,7 +89,7 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
                   </span>
                 </Button>
               </DialogTrigger>
-              <AddUserDialog onUserAdded={handleAddUser} />
+              <AddUserDialog onUserAdded={addUser} closeDialog={() => setAddDialogOpen(false)} />
             </Dialog>
           </div>
         </CardHeader>
@@ -163,7 +148,7 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
           <EditUserDialog
             user={selectedUser}
             onOpenChange={setEditDialogOpen}
-            onUserUpdated={handleUserUpdated}
+            onUserUpdated={updateUser}
           />
         </Dialog>
       )}

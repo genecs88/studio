@@ -22,6 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { type User } from "@/lib/placeholder-data";
 
 const userSchema = z.object({
   name: z.string().min(1, "User name is required"),
@@ -29,14 +30,15 @@ const userSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-type UserFormValues = z.infer<typeof userSchema>;
+type UserFormValues = Omit<User, 'id' | 'createdAt'>;
 
 interface AddUserDialogProps {
-  onUserAdded: (newUser: UserFormValues) => void;
+  onUserAdded: (newUser: UserFormValues) => Promise<void>;
+  closeDialog: () => void;
 }
 
-export default function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
-  const form = useForm<UserFormValues>({
+export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialogProps) {
+  const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       name: "",
@@ -45,9 +47,10 @@ export default function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     },
   });
 
-  const onSubmit = (values: UserFormValues) => {
-    onUserAdded(values);
+  const onSubmit = async (values: z.infer<typeof userSchema>) => {
+    await onUserAdded(values);
     form.reset();
+    closeDialog();
   };
 
   return (

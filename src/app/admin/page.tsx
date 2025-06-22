@@ -12,12 +12,12 @@ import UsersTab from "@/components/admin/users-tab";
 
 export default function AdminDashboard() {
   const {
-    environments, setEnvironments,
-    organizations, setOrganizations,
-    apiKeys, setApiKeys,
-    orgPaths, setOrgPaths,
-    apiActions, setApiActions,
-    users, setUsers,
+    environments,
+    organizations,
+    apiKeys,
+    orgPaths,
+    apiActions,
+    users,
   } = useAppData();
 
   return (
@@ -39,20 +39,17 @@ export default function AdminDashboard() {
         <TabsContent value="environments">
             <EnvironmentsTab 
               environments={environments}
-              setEnvironments={setEnvironments}
             />
         </TabsContent>
         <TabsContent value="organizations">
             <OrganizationsTab
               organizations={organizations}
-              setOrganizations={setOrganizations}
               environments={environments}
             />
         </TabsContent>
         <TabsContent value="api-keys">
             <ApiKeysTab
               apiKeys={apiKeys}
-              setApiKeys={setApiKeys}
               organizations={organizations}
               environments={environments}
             />
@@ -60,7 +57,6 @@ export default function AdminDashboard() {
         <TabsContent value="org-paths">
             <OrgPathsTab
               orgPaths={orgPaths}
-              setOrgPaths={setOrgPaths}
               organizations={organizations}
               environments={environments}
             />
@@ -68,14 +64,12 @@ export default function AdminDashboard() {
         <TabsContent value="api-actions">
             <ApiActionsTab 
               apiActions={apiActions}
-              setApiActions={setApiActions}
               environments={environments}
             />
         </TabsContent>
         <TabsContent value="users">
             <UsersTab
               users={users}
-              setUsers={setUsers}
             />
         </TabsContent>
       </Tabs>

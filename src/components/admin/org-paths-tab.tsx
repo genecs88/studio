@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -44,12 +45,12 @@ import {
 
 interface OrgPathsTabProps {
   orgPaths: OrgPath[];
-  setOrgPaths: React.Dispatch<React.SetStateAction<OrgPath[]>>;
   organizations: Organization[];
   environments: Environment[];
 }
 
-export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, environments }: OrgPathsTabProps) {
+export default function OrgPathsTab({ orgPaths, organizations, environments }: OrgPathsTabProps) {
+  const { addOrgPath, updateOrgPath, deleteOrgPath } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,9 +66,9 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedPath) {
-      setOrgPaths(orgPaths.filter((path) => path.id !== selectedPath.id));
+      await deleteOrgPath(selectedPath.id);
       setDeleteDialogOpen(false);
       setSelectedPath(null);
     }
@@ -76,27 +77,6 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
   const getOrganizationName = (organizationId: string) => {
     const org = organizations.find((o) => o.id === organizationId);
     return org ? org.name : "Unknown";
-  };
-  
-  const handleAddOrgPath = (newPathData: { organizationId: string; path: string; }) => {
-    const newPath: OrgPath = {
-      id: `path_${Date.now()}`,
-      ...newPathData,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setOrgPaths(prevPaths => [...prevPaths, newPath]);
-    setAddDialogOpen(false);
-  };
-
-  const onOrgPathUpdated = (updatedOrgPath: OrgPath) => {
-    setOrgPaths(paths => paths.map(path => path.id === updatedOrgPath.id ? updatedOrgPath : path));
-  };
-  
-  const handleOrgPathUpdated = (updatedPathData: Omit<OrgPath, 'createdAt'>) => {
-    const originalPath = orgPaths.find(p => p.id === updatedPathData.id);
-    if(originalPath) {
-        onOrgPathUpdated({ ...updatedPathData, createdAt: originalPath.createdAt });
-    }
   };
 
   return (
@@ -119,7 +99,12 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
                   </span>
                 </Button>
               </DialogTrigger>
-              <AddOrgPathDialog onOrgPathAdded={handleAddOrgPath} organizations={organizations} environments={environments} />
+              <AddOrgPathDialog 
+                onOrgPathAdded={addOrgPath} 
+                organizations={organizations} 
+                environments={environments}
+                closeDialog={() => setAddDialogOpen(false)}
+              />
             </Dialog>
           </div>
         </CardHeader>
@@ -183,7 +168,7 @@ export default function OrgPathsTab({ orgPaths, setOrgPaths, organizations, envi
                 onOpenChange={setEditDialogOpen}
                 organizations={organizations}
                 environments={environments}
-                onOrgPathUpdated={handleOrgPathUpdated}
+                onOrgPathUpdated={updateOrgPath}
             />
         </Dialog>
       )}

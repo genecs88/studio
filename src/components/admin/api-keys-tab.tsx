@@ -1,6 +1,8 @@
 
 "use client";
 
+import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -29,7 +31,6 @@ import { Badge } from "@/components/ui/badge";
 import { type ApiKey, type Organization, type Environment } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiKeyDialog from "./generate-api-key-dialog";
 import EditApiKeyDialog from "./edit-api-key-dialog";
@@ -59,8 +60,8 @@ function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id
         }
     };
     
-    const handleDelete = () => {
-        onDelete(apiKey.id);
+    const handleDelete = async () => {
+        await onDelete(apiKey.id);
         setDeleteDialogOpen(false);
     }
 
@@ -128,59 +129,19 @@ function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id
 
 interface ApiKeysTabProps {
     apiKeys: ApiKey[];
-    setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
     organizations: Organization[];
     environments: Environment[];
 }
 
-export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environments }: ApiKeysTabProps) {
+export default function ApiKeysTab({ apiKeys, organizations, environments }: ApiKeysTabProps) {
+  const { addApiKey, updateApiKey, deleteApiKey } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
   
-  const handleDeleteKey = (id: string) => {
-    setApiKeys(apiKeys.filter(key => key.id !== id));
-  }
-
   const handleEditClick = (apiKey: ApiKey) => {
     setSelectedApiKey(apiKey);
     setEditDialogOpen(true);
-  }
-
-  const handleAddApiKey = (newKeyData: { organizationId: string; environmentId: string; key: string }) => {
-    const org = organizations.find(o => o.id === newKeyData.organizationId);
-    const env = environments.find(e => e.id === newKeyData.environmentId);
-
-    if (org && env) {
-        const newKey: ApiKey = {
-          id: `key_${Date.now()}`,
-          key: newKeyData.key,
-          organization: org.name,
-          environment: env.name,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
-        setApiKeys(prevKeys => [...prevKeys, newKey]);
-        setAddDialogOpen(false);
-    }
-  };
-  
-  const onApiKeyUpdated = (updatedKey: ApiKey) => {
-      setApiKeys(keys => keys.map(k => k.id === updatedKey.id ? updatedKey : k));
-  };
-
-  const handleApiKeyUpdated = (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {
-      const org = organizations.find(o => o.id === updatedKey.organizationId);
-      const env = environments.find(e => e.id === updatedKey.environmentId);
-      const originalKey = apiKeys.find(k => k.id === updatedKey.id);
-
-      if (org && env && originalKey) {
-          onApiKeyUpdated({
-              ...updatedKey,
-              organization: org.name,
-              environment: env.name,
-              createdAt: originalKey.createdAt,
-          });
-      }
   }
 
   return (
@@ -203,7 +164,12 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
                       </span>
                   </Button>
                 </DialogTrigger>
-                <AddApiKeyDialog onApiKeyAdded={handleAddApiKey} organizations={organizations} environments={environments} />
+                <AddApiKeyDialog 
+                  onApiKeyAdded={addApiKey} 
+                  organizations={organizations} 
+                  environments={environments} 
+                  closeDialog={() => setAddDialogOpen(false)}
+                />
               </Dialog>
           </div>
         </CardHeader>
@@ -223,7 +189,7 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
               </TableHeader>
               <TableBody>
                   {apiKeys.map((key) => (
-                      <ApiKeyRow key={key.id} apiKey={key} onDelete={handleDeleteKey} onEdit={handleEditClick} />
+                      <ApiKeyRow key={key.id} apiKey={key} onDelete={deleteApiKey} onEdit={handleEditClick} />
                   ))}
               </TableBody>
               </Table>
@@ -238,7 +204,7 @@ export default function ApiKeysTab({ apiKeys, setApiKeys, organizations, environ
                 onOpenChange={setEditDialogOpen} 
                 organizations={organizations} 
                 environments={environments}
-                onApiKeyUpdated={handleApiKeyUpdated}
+                onApiKeyUpdated={updateApiKey}
             />
         </Dialog>
       )}

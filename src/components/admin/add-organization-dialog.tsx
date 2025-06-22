@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -49,11 +50,12 @@ const organizationSchema = z.object({
 export type NewOrganizationData = z.infer<typeof organizationSchema>;
 
 interface AddOrganizationDialogProps {
-  onOrganizationAdded: (newOrg: NewOrganizationData) => void;
+  onOrganizationAdded: (newOrg: NewOrganizationData) => Promise<void>;
   environments: Environment[];
+  closeDialog: () => void;
 }
 
-export default function AddOrganizationDialog({ onOrganizationAdded, environments }: AddOrganizationDialogProps) {
+export default function AddOrganizationDialog({ onOrganizationAdded, environments, closeDialog }: AddOrganizationDialogProps) {
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -68,9 +70,10 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
     name: "studyIdentifiers",
   });
 
-  const onSubmit = (values: z.infer<typeof organizationSchema>) => {
-    onOrganizationAdded(values);
+  const onSubmit = async (values: z.infer<typeof organizationSchema>) => {
+    await onOrganizationAdded(values);
     form.reset();
+    closeDialog();
   };
 
   return (

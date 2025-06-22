@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -50,7 +51,7 @@ interface EditOrganizationDialogProps {
   organization: Organization;
   environments: Environment[];
   onOpenChange: (open: boolean) => void;
-  onOrganizationUpdated: (updatedOrg: Omit<Organization, 'createdAt'>) => void;
+  onOrganizationUpdated: (updatedOrg: Omit<Organization, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditOrganizationDialog({ organization, environments, onOpenChange, onOrganizationUpdated }: EditOrganizationDialogProps) {
@@ -76,8 +77,8 @@ export default function EditOrganizationDialog({ organization, environments, onO
     name: "studyIdentifiers",
   });
 
-  const onSubmit = (values: z.infer<typeof organizationSchema>) => {
-    onOrganizationUpdated({ id: organization.id, ...values });
+  const onSubmit = async (values: z.infer<typeof organizationSchema>) => {
+    await onOrganizationUpdated({ id: organization.id, ...values });
     onOpenChange(false);
   };
 

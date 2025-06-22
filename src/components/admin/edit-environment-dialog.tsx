@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -31,7 +32,7 @@ const environmentSchema = z.object({
 interface EditEnvironmentDialogProps {
   environment: Environment;
   onOpenChange: (open: boolean) => void;
-  onEnvironmentUpdated: (updatedEnv: Environment) => void;
+  onEnvironmentUpdated: (updatedEnv: Environment) => Promise<void>;
 }
 
 export default function EditEnvironmentDialog({ environment, onOpenChange, onEnvironmentUpdated }: EditEnvironmentDialogProps) {
@@ -50,8 +51,8 @@ export default function EditEnvironmentDialog({ environment, onOpenChange, onEnv
     });
   }, [environment, form]);
 
-  const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    onEnvironmentUpdated({ ...environment, ...values });
+  const onSubmit = async (values: z.infer<typeof environmentSchema>) => {
+    await onEnvironmentUpdated({ ...environment, ...values });
     onOpenChange(false);
   };
 
