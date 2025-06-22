@@ -243,15 +243,15 @@ export default function UpdateReportPage() {
                     disabled={!selectedOrganization}
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="DRAFT" id="status-draft" />
+                        <RadioGroupItem value="draft" id="status-draft" />
                         <Label htmlFor="status-draft" className="font-normal cursor-pointer">
-                            DRAFT
+                            draft
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="CANCELLED" id="status-cancelled" />
+                        <RadioGroupItem value="cancelled" id="status-cancelled" />
                         <Label htmlFor="status-cancelled" className="font-normal cursor-pointer">
-                            CANCELLED
+                            cancelled
                         </Label>
                     </div>
                 </RadioGroup>
