@@ -64,7 +64,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/cancel-report') return 'Cancel Report';
     if (pathname === '/update-report') return 'Update Report Status';
-    if (pathname === '/test-firestore') return 'Test Firestore Connection';
     return 'Tech Support Tools';
   };
 
@@ -153,14 +152,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   <Link href="/update-report">
                     <FilePenLine />
                     Update Report Status
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/test-firestore'}>
-                  <Link href="/test-firestore">
-                    <Plug />
-                    Test Connection
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
