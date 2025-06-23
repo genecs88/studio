@@ -21,7 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutGrid,
-  Settings,
   Wrench,
   Search,
   ArrowRightLeft,
@@ -146,12 +145,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                     <FilePenLine />
                     Update Report Status
                   </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Settings />
-                  Settings
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
