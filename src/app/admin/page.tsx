@@ -8,6 +8,7 @@ import ApiKeysTab from "@/components/admin/api-keys-tab";
 import EnvironmentsTab from "@/components/admin/environments-tab";
 import OrgPathsTab from "@/components/admin/org-paths-tab";
 import ApiActionsTab from "@/components/admin/api-actions-tab";
+import UsersTab from "@/components/admin/users-tab";
 
 export default function AdminDashboard() {
   const {
@@ -15,7 +16,8 @@ export default function AdminDashboard() {
     organizations, setOrganizations,
     apiKeys, setApiKeys,
     orgPaths, setOrgPaths,
-    apiActions, setApiActions
+    apiActions, setApiActions,
+    users, setUsers,
   } = useAppData();
 
   return (
@@ -26,12 +28,13 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="environments" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="environments">Environments</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
           <TabsTrigger value="org-paths">Org Paths</TabsTrigger>
           <TabsTrigger value="api-actions">API Actions</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
         <TabsContent value="environments">
             <EnvironmentsTab 
@@ -67,6 +70,12 @@ export default function AdminDashboard() {
               apiActions={apiActions}
               setApiActions={setApiActions}
               environments={environments}
+            />
+        </TabsContent>
+        <TabsContent value="users">
+            <UsersTab
+              users={users}
+              setUsers={setUsers}
             />
         </TabsContent>
       </Tabs>

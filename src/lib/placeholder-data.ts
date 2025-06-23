@@ -36,6 +36,31 @@ export type ApiAction = {
   createdAt: string;
 };
 
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  createdAt: string;
+};
+
+export const users: User[] = [
+  {
+    id: "user_1",
+    name: "Admin User",
+    email: "admin@techsupport.dev",
+    password: "password",
+    createdAt: "2023-01-01",
+  },
+  {
+    id: "user_2",
+    name: "Permanent Admin",
+    email: "admin@radpair.com",
+    password: "12345",
+    createdAt: "2023-01-01",
+  },
+];
+
 export const organizations: Organization[] = [
   {
     id: "org_1",
