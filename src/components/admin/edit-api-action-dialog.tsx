@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -29,7 +29,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type ApiAction, type Environment } from "@/lib/placeholder-data";
+import { useToast } from "@/hooks/use-toast";
+import type { ApiAction, Environment } from "@/lib/placeholder-data";
 
 const apiActionSchema = z.object({
   key: z.string().min(1, "Key name is required"),
@@ -47,6 +48,9 @@ interface EditApiActionDialogProps {
 }
 
 export default function EditApiActionDialog({ apiAction, environments, onOpenChange, onApiActionUpdated }: EditApiActionDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<ApiActionFormValues>({
     resolver: zodResolver(apiActionSchema),
     defaultValues: {
@@ -65,8 +69,24 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
   }, [apiAction, form]);
 
   const onSubmit = async (values: ApiActionFormValues) => {
-    await onApiActionUpdated({ id: apiAction.id, ...values });
-    onOpenChange(false);
+    setIsSubmitting(true);
+    try {
+      await onApiActionUpdated({ id: apiAction.id, ...values });
+      toast({
+        title: "Success!",
+        description: "API Action has been updated.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update API Action.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,7 +106,7 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
               <FormItem>
                 <FormLabel>Key</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., default_model" {...field} />
+                  <Input placeholder="e.g., default_model" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -99,7 +119,7 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
               <FormItem>
                 <FormLabel>Value</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., gemini-1.5-pro" {...field} />
+                  <Input placeholder="e.g., gemini-1.5-pro" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,6 +134,7 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -133,10 +154,12 @@ export default function EditApiActionDialog({ apiAction, environments, onOpenCha
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

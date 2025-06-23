@@ -29,10 +29,11 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  type Environment,
-  type Organization,
-  type ApiKey,
+import { useToast } from "@/hooks/use-toast";
+import type {
+  Environment,
+  Organization,
+  ApiKey,
 } from "@/lib/placeholder-data";
 
 const apiKeySchema = z.object({
@@ -52,7 +53,9 @@ interface EditApiKeyDialogProps {
 }
 
 export default function EditApiKeyDialog({ apiKey, organizations, environments, onOpenChange, onApiKeyUpdated }: EditApiKeyDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
+  const { toast } = useToast();
   
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
@@ -91,8 +94,24 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
   }, [selectedEnvironmentId, form, organizations]);
 
   const onSubmit = async (values: ApiKeyFormValues) => {
-    await onApiKeyUpdated({ id: apiKey.id, ...values });
-    onOpenChange(false);
+    setIsSubmitting(true);
+    try {
+      await onApiKeyUpdated({ id: apiKey.id, ...values });
+      toast({
+        title: "Success!",
+        description: "API Key has been updated.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update API Key.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,6 +146,7 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -155,7 +175,7 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedEnvironmentId}
+                  disabled={!selectedEnvironmentId || isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -181,10 +201,12 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -22,7 +22,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type User } from "@/lib/placeholder-data";
+import { useToast } from "@/hooks/use-toast";
+import type { User } from "@/lib/placeholder-data";
 
 const userSchema = z.object({
   name: z.string().min(1, "User name is required"),
@@ -39,6 +40,9 @@ interface EditUserDialogProps {
 }
 
 export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: EditUserDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -57,15 +61,31 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
   }, [user, form]);
 
   const onSubmit = async (values: UserFormValues) => {
-    const updatedUser: User = {
-      ...user,
-      name: values.name,
-      email: values.email,
-      // Only update password if a new one is provided
-      password: values.password ? values.password : user.password,
-    };
-    await onUserUpdated(updatedUser);
-    onOpenChange(false);
+    setIsSubmitting(true);
+    try {
+      const updatedUser: User = {
+        ...user,
+        name: values.name,
+        email: values.email,
+        // Only update password if a new one is provided
+        password: values.password ? values.password : user.password,
+      };
+      await onUserUpdated(updatedUser);
+      toast({
+        title: "Success!",
+        description: `User "${values.name}" has been updated.`,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update user.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,7 +105,7 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Jane Doe" {...field} />
+                  <Input placeholder="e.g., Jane Doe" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -98,7 +118,7 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="e.g., jane@example.com" {...field} />
+                  <Input type="email" placeholder="e.g., jane@example.com" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -111,17 +131,19 @@ export default function EditUserDialog({ user, onOpenChange, onUserUpdated }: Ed
               <FormItem>
                 <FormLabel>New Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Leave blank to keep current password" {...field} />
+                  <Input type="password" placeholder="Leave blank to keep current password" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
