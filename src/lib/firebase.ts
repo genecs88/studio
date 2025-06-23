@@ -12,18 +12,32 @@ const firebaseConfig = {
 
 let app: FirebaseApp | undefined;
 let db: Firestore | undefined;
+let connectionError: string | null = null;
 
-// Check if the necessary Firebase config values are provided.
-const configIsValid = firebaseConfig.apiKey && firebaseConfig.projectId;
+const requiredKeys: (keyof typeof firebaseConfig)[] = [
+  'apiKey', 
+  'authDomain', 
+  'projectId', 
+  'storageBucket', 
+  'messagingSenderId', 
+  'appId'
+];
 
-if (configIsValid) {
-  // Initialize Firebase only if the config is valid.
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  db = getFirestore(app);
+const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+
+if (missingKeys.length > 0) {
+  const envVarNames = missingKeys.map(k => `NEXT_PUBLIC_FIREBASE_${k.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+  const errorMessage = `Firebase configuration is missing. Please add the following to your .env.local file: ${envVarNames.join(', ')}`;
+  console.warn(errorMessage);
+  connectionError = errorMessage;
 } else {
-  // Log a warning if the config is missing.
-  // This will prevent a server crash and show a clear message in the logs.
-  console.warn("Firebase configuration is missing or incomplete. Please check your .env.local file. The application will not connect to the database.");
+  try {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    db = getFirestore(app);
+  } catch (e: any) {
+    connectionError = `Firebase initialization failed: ${e.message}`;
+    console.error(connectionError, e);
+  }
 }
 
-export { db };
+export { db, connectionError };
