@@ -20,7 +20,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setIsAuthenticated, users } = useAppData();
+  const {
+    setIsAuthenticated,
+    users,
+    connectionStatus,
+    connectionError,
+  } = useAppData();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -41,6 +46,9 @@ export default function LoginPage() {
     }
   };
 
+  const isConnecting = connectionStatus === 'connecting';
+  const hasConnectionError = connectionStatus === 'error';
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -60,6 +68,20 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {hasConnectionError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Connection Error</AlertTitle>
+                  <AlertDescription>{connectionError}</AlertDescription>
+                </Alert>
+              )}
+              {isConnecting && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4 animate-spin" />
+                  <AlertTitle>Connecting...</AlertTitle>
+                  <AlertDescription>Attempting to connect to the database. Please wait.</AlertDescription>
+                </Alert>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -76,6 +98,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isConnecting || hasConnectionError}
                 />
               </div>
               <div className="space-y-2">
@@ -87,12 +110,13 @@ export default function LoginPage() {
                   placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isConnecting || hasConnectionError}
                 />
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={isConnecting || hasConnectionError}>
+                {isConnecting ? 'Connecting...' : 'Login'}
               </Button>
             </CardFooter>
           </form>
