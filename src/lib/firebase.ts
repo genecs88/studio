@@ -1,8 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
-// IMPORTANT: Your Firebase project configuration will be loaded from environment variables.
-// Make sure you have a .env.local file with the correct values.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -12,9 +10,20 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase.
-// The app will not start if required environment variables are not set.
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+let app: FirebaseApp | undefined;
+let db: Firestore | undefined;
+
+// Check if the necessary Firebase config values are provided.
+const configIsValid = firebaseConfig.apiKey && firebaseConfig.projectId;
+
+if (configIsValid) {
+  // Initialize Firebase only if the config is valid.
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  db = getFirestore(app);
+} else {
+  // Log a warning if the config is missing.
+  // This will prevent a server crash and show a clear message in the logs.
+  console.warn("Firebase configuration is missing or incomplete. Please check your .env.local file. The application will not connect to the database.");
+}
 
 export { db };

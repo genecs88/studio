@@ -85,6 +85,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   // Seed database with initial data if it's empty
   useEffect(() => {
     const seedDatabase = async () => {
+      // Only run seeding if db is available
+      if (!db) return;
       try {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         if (usersSnapshot.empty) {
@@ -110,6 +112,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // Set up real-time listeners for all collections
   useEffect(() => {
+    // Only set up listeners if db is available
+    if (!db) return;
+
     const unsubEnvironments = onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment))));
     const unsubOrganizations = onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization))));
     const unsubApiKeys = onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey))));
@@ -128,19 +133,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // CRUD function implementations
-  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
-  const updateUser = async (data: User) => await updateDoc(doc(db, 'users', data.id), { ...data });
-  const deleteUser = async (id: string) => await deleteDoc(doc(db, 'users', id));
+  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => { if (db) await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateUser = async (data: User) => { if (db) await updateDoc(doc(db, 'users', data.id), { ...data }) };
+  const deleteUser = async (id: string) => { if (db) await deleteDoc(doc(db, 'users', id)) };
   
-  const addEnvironment = async (data: Omit<Environment, 'id'>) => await addDoc(collection(db, 'environments'), data);
-  const updateEnvironment = async (data: Environment) => await updateDoc(doc(db, 'environments', data.id), { ...data });
-  const deleteEnvironment = async (id: string) => await deleteDoc(doc(db, 'environments', id));
+  const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (db) await addDoc(collection(db, 'environments'), data) };
+  const updateEnvironment = async (data: Environment) => { if (db) await updateDoc(doc(db, 'environments', data.id), { ...data }) };
+  const deleteEnvironment = async (id: string) => { if (db) await deleteDoc(doc(db, 'environments', id)) };
 
-  const addOrganization = async (data: NewOrganizationData) => await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
-  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => await updateDoc(doc(db, 'organizations', data.id), { ...data });
-  const deleteOrganization = async (id: string) => await deleteDoc(doc(db, 'organizations', id));
+  const addOrganization = async (data: NewOrganizationData) => { if (db) await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'organizations', data.id), { ...data }) };
+  const deleteOrganization = async (id: string) => { if (db) await deleteDoc(doc(db, 'organizations', id)) };
 
   const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }) => {
+    if (!db) return;
     const org = organizations.find(o => o.id === data.organizationId);
     const env = environments.find(e => e.id === data.environmentId);
     if(org && env) {
@@ -153,6 +159,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   };
   const updateApiKey = async (data: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {
+    if (!db) return;
     const org = organizations.find(o => o.id === data.organizationId);
     const env = environments.find(e => e.id === data.environmentId);
     if(org && env) {
@@ -163,15 +170,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
        });
     }
   };
-  const deleteApiKey = async (id: string) => await deleteDoc(doc(db, 'apiKeys', id));
+  const deleteApiKey = async (id: string) => { if (db) await deleteDoc(doc(db, 'apiKeys', id)) };
 
-  const addOrgPath = async (data: { organizationId: string; path: string; }) => await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
-  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => await updateDoc(doc(db, 'orgPaths', data.id), { ...data });
-  const deleteOrgPath = async (id: string) => await deleteDoc(doc(db, 'orgPaths', id));
+  const addOrgPath = async (data: { organizationId: string; path: string; }) => { if (db) await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'orgPaths', data.id), { ...data }) };
+  const deleteOrgPath = async (id: string) => { if (db) await deleteDoc(doc(db, 'orgPaths', id)) };
   
-  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
-  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => await updateDoc(doc(db, 'apiActions', data.id), { ...data });
-  const deleteApiAction = async (id: string) => await deleteDoc(doc(db, 'apiActions', id));
+  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => { if (db) await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'apiActions', data.id), { ...data }) };
+  const deleteApiAction = async (id: string) => { if (db) await deleteDoc(doc(db, 'apiActions', id)) };
 
   const value = {
     isAuthenticated, setIsAuthenticated,
