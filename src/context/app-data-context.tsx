@@ -158,6 +158,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
 
     const initializeDb = async () => {
+      if (!db) {
+        handleSnapshotError(new Error("Database not initialized during seeding check."));
+        return false;
+      }
       try {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         if (usersSnapshot.empty) {
@@ -184,6 +188,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     let unsubscribers: Unsubscribe[] = [];
 
     const setupListeners = () => {
+      if (!db) {
+        handleSnapshotError(new Error("Database not initialized before setting up listeners."));
+        return;
+      }
       unsubscribers.push(onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment))), handleSnapshotError));
       unsubscribers.push(onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization))), handleSnapshotError));
       unsubscribers.push(onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey))), handleSnapshotError));
