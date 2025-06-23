@@ -22,6 +22,7 @@ import {
 
 interface AppDataContextType {
   isAuthenticated: boolean;
+  isAuthChecked: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   connectionStatus: 'connecting' | 'connected' | 'error';
   connectionError: string | null;
@@ -63,11 +64,8 @@ interface AppDataContextType {
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  // Use sessionStorage for auth state to persist through reloads but clear on session end.
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.sessionStorage.getItem('isAuthenticated') === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
   
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -80,12 +78,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [apiActions, setApiActions] = useState<ApiAction[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
+  // Check auth status from sessionStorage on initial client load
+  useEffect(() => {
+    const storedAuth = sessionStorage.getItem('isAuthenticated') === 'true';
+    setIsAuthenticated(storedAuth);
+    setIsAuthChecked(true);
+  }, []);
+
   // Persist auth state in sessionStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isAuthChecked) {
       sessionStorage.setItem('isAuthenticated', String(isAuthenticated));
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAuthChecked]);
   
   // Set up real-time listeners for all collections and check connection
   useEffect(() => {
@@ -192,7 +197,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const deleteApiAction = async (id: string) => { if (db) await deleteDoc(doc(db, 'apiActions', id)) };
 
   const value = {
-    isAuthenticated, setIsAuthenticated,
+    isAuthenticated, setIsAuthenticated, isAuthChecked,
     connectionStatus, connectionError,
     environments, organizations, apiKeys, orgPaths, apiActions, users,
     addUser, updateUser, deleteUser,

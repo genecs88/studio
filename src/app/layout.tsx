@@ -42,13 +42,13 @@ import { cn } from '@/lib/utils';
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, setIsAuthenticated, connectionStatus, connectionError } = useAppData();
+  const { isAuthenticated, isAuthChecked, setIsAuthenticated, connectionStatus, connectionError } = useAppData();
 
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/login') {
+    if (isAuthChecked && !isAuthenticated && pathname !== '/login') {
       router.push('/login');
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthChecked, isAuthenticated, pathname, router]);
 
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -65,6 +65,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/update-report') return 'Update Report Status';
     return 'Tech Support Tools';
   };
+
+  // While auth state is being checked, render nothing to prevent a flash of incorrect UI.
+  if (!isAuthChecked) {
+    return null;
+  }
 
   // Render only children for the login page, or if the user is not yet authenticated
   // to prevent the main layout from flashing before the redirect happens.
@@ -220,7 +225,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="font-body antialiased" suppressHydrationWarning={true}>
+      <body className="font-body antialiased">
         <AppDataProvider>
           <AppContent>{children}</AppContent>
           <Toaster />
