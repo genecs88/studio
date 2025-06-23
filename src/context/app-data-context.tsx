@@ -71,6 +71,8 @@ interface AppDataContextType {
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
+const DB_ERROR_MSG = "Database not connected. Check Firebase configuration.";
+
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
@@ -167,14 +169,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // CRUD function implementations
-  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => { if (db) await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateUser = async (data: User) => { if (db) await updateDoc(doc(db, 'users', data.id), { ...data }) };
-  const deleteUser = async (id: string) => { if (db) await deleteDoc(doc(db, 'users', id)) };
+  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateUser = async (data: User) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'users', data.id), { ...data }) };
+  const deleteUser = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'users', id)) };
   
-  const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (db) await addDoc(collection(db, 'environments'), data) };
-  const updateEnvironment = async (data: Environment) => { if (db) await updateDoc(doc(db, 'environments', data.id), { ...data }) };
+  const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'environments'), data) };
+  const updateEnvironment = async (data: Environment) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'environments', data.id), { ...data }) };
   const deleteEnvironment = async (envId: string) => {
-    if (!db) return;
+    if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
     const envToDelete = environments.find(e => e.id === envId);
     if (!envToDelete) {
@@ -202,10 +204,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     toast({ title: "Success!", description: `Environment "${envToDelete.name}" and all its associated data have been deleted.`});
   };
 
-  const addOrganization = async (data: NewOrganizationData) => { if (db) await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'organizations', data.id), { ...data }) };
+  const addOrganization = async (data: NewOrganizationData) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'organizations', data.id), { ...data }) };
   const deleteOrganization = async (orgId: string) => {
-    if (!db) return;
+    if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
     const orgToDelete = organizations.find(o => o.id === orgId);
     if (!orgToDelete) {
@@ -230,7 +232,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }) => {
-    if (!db) return;
+    if (!db) throw new Error(DB_ERROR_MSG);
     const org = organizations.find(o => o.id === data.organizationId);
     const env = environments.find(e => e.id === data.environmentId);
     if(org && env) {
@@ -243,7 +245,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   };
   const updateApiKey = async (data: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {
-    if (!db) return;
+    if (!db) throw new Error(DB_ERROR_MSG);
     const org = organizations.find(o => o.id === data.organizationId);
     const env = environments.find(e => e.id === data.environmentId);
     if(org && env) {
@@ -254,15 +256,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
        });
     }
   };
-  const deleteApiKey = async (id: string) => { if (db) await deleteDoc(doc(db, 'apiKeys', id)) };
+  const deleteApiKey = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiKeys', id)) };
 
-  const addOrgPath = async (data: { organizationId: string; path: string; }) => { if (db) await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'orgPaths', data.id), { ...data }) };
-  const deleteOrgPath = async (id: string) => { if (db) await deleteDoc(doc(db, 'orgPaths', id)) };
+  const addOrgPath = async (data: { organizationId: string; path: string; }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'orgPaths', data.id), { ...data }) };
+  const deleteOrgPath = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'orgPaths', id)) };
   
-  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => { if (db) await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'apiActions', data.id), { ...data }) };
-  const deleteApiAction = async (id: string) => { if (db) await deleteDoc(doc(db, 'apiActions', id)) };
+  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'apiActions', data.id), { ...data }) };
+  const deleteApiAction = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiActions', id)) };
 
   const value = {
     isAuthenticated, setIsAuthenticated, isAuthChecked,
@@ -286,5 +288,3 @@ export function useAppData() {
   }
   return context;
 }
-
-    

@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -22,6 +23,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { type User } from "@/lib/placeholder-data";
 
 const userSchema = z.object({
@@ -38,6 +40,9 @@ interface AddUserDialogProps {
 }
 
 export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -48,9 +53,25 @@ export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialo
   });
 
   const onSubmit = async (values: z.infer<typeof userSchema>) => {
-    await onUserAdded(values);
-    form.reset();
-    closeDialog();
+    setIsSubmitting(true);
+    try {
+      await onUserAdded(values);
+      toast({
+        title: "Success!",
+        description: `User "${values.name}" has been added.`,
+      });
+      form.reset();
+      closeDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Error Adding User",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,7 +91,7 @@ export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialo
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Jane Doe" {...field} />
+                  <Input placeholder="e.g., Jane Doe" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -83,7 +104,7 @@ export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialo
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="e.g., jane@example.com" {...field} />
+                  <Input type="email" placeholder="e.g., jane@example.com" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -96,7 +117,7 @@ export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialo
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Enter a secure password" {...field} />
+                  <Input type="password" placeholder="Enter a secure password" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -104,11 +125,13 @@ export default function AddUserDialog({ onUserAdded, closeDialog }: AddUserDialo
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add User</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add User"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

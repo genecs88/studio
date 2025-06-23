@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -30,6 +31,7 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { type Environment, type NewOrganizationData } from "@/lib/placeholder-data";
 import { PlusCircle, X } from "lucide-react";
 
@@ -54,6 +56,9 @@ interface AddOrganizationDialogProps {
 }
 
 export default function AddOrganizationDialog({ onOrganizationAdded, environments, closeDialog }: AddOrganizationDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -69,9 +74,25 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
   });
 
   const onSubmit = async (values: z.infer<typeof organizationSchema>) => {
-    await onOrganizationAdded(values);
-    form.reset();
-    closeDialog();
+    setIsSubmitting(true);
+    try {
+      await onOrganizationAdded(values);
+      toast({
+        title: "Success!",
+        description: `Organization "${values.name}" has been added.`,
+      });
+      form.reset();
+      closeDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Error Adding Organization",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,7 +113,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                 <FormItem>
                   <FormLabel>Organization Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Acme Inc." {...field} />
+                    <Input placeholder="Acme Inc." {...field} disabled={isSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,6 +128,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={isSubmitting}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -148,7 +170,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                       <FormItem>
                         <FormLabel>Key {index + 1}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., MRN" {...field} />
+                          <Input placeholder="e.g., MRN" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -164,6 +186,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                           <Input
                             placeholder="e.g., medical_record_num"
                             {...field}
+                            disabled={isSubmitting}
                           />
                         </FormControl>
                         <FormMessage />
@@ -176,6 +199,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                     size="icon"
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => remove(index)}
+                    disabled={isSubmitting}
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Remove identifier</span>
@@ -191,6 +215,7 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
                 size="sm"
                 className="mt-2"
                 onClick={() => append({ key: "", value: "" })}
+                disabled={isSubmitting || fields.length >= 4}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Identifier
@@ -200,11 +225,13 @@ export default function AddOrganizationDialog({ onOrganizationAdded, environment
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add Organization</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Organization"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

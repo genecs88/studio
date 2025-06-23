@@ -30,6 +30,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { type Organization, type Environment } from "@/lib/placeholder-data";
 
 const orgPathSchema = z.object({
@@ -47,6 +48,8 @@ interface AddOrgPathDialogProps {
 
 export default function AddOrgPathDialog({ onOrgPathAdded, organizations, environments, closeDialog }: AddOrgPathDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof orgPathSchema>>({
     resolver: zodResolver(orgPathSchema),
@@ -72,10 +75,26 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
   }, [selectedEnvironmentId, form, organizations]);
 
   const onSubmit = async (values: z.infer<typeof orgPathSchema>) => {
-    await onOrgPathAdded({ organizationId: values.organizationId, path: values.path });
-    form.reset();
-    setFilteredOrganizations([]);
-    closeDialog();
+    setIsSubmitting(true);
+    try {
+      await onOrgPathAdded({ organizationId: values.organizationId, path: values.path });
+      toast({
+        title: "Success!",
+        description: "Organization path has been added.",
+      });
+      form.reset();
+      setFilteredOrganizations([]);
+      closeDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Error Adding Org Path",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -97,6 +116,7 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -125,7 +145,7 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedEnvironmentId}
+                  disabled={!selectedEnvironmentId || isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -161,6 +181,7 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
                   <Textarea
                     placeholder="Enter comma-separated data, e.g., dept,region,group"
                     {...field}
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <FormMessage />
@@ -170,11 +191,13 @@ export default function AddOrgPathDialog({ onOrgPathAdded, organizations, enviro
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add Org Path</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Org Path"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

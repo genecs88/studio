@@ -60,10 +60,11 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded, closeDialog }
       closeDialog();
     } catch (error) {
       console.error("Failed to add environment", error);
+      const message = error instanceof Error ? error.message : "Could not add the environment. Please try again.";
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not add the environment. Please try again.",
+        description: message,
       });
     } finally {
       setIsSubmitting(false);

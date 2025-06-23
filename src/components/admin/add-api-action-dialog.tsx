@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -29,6 +30,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { type Environment } from "@/lib/placeholder-data";
 
 const apiActionSchema = z.object({
@@ -46,6 +48,9 @@ interface AddApiActionDialogProps {
 }
 
 export default function AddApiActionDialog({ onApiActionAdded, environments, closeDialog }: AddApiActionDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  
   const form = useForm<ApiActionFormValues>({
     resolver: zodResolver(apiActionSchema),
     defaultValues: {
@@ -56,9 +61,25 @@ export default function AddApiActionDialog({ onApiActionAdded, environments, clo
   });
 
   const onSubmit = async (values: ApiActionFormValues) => {
-    await onApiActionAdded(values);
-    form.reset();
-    closeDialog();
+    setIsSubmitting(true);
+    try {
+      await onApiActionAdded(values);
+      toast({
+        title: "Success!",
+        description: `API Action "${values.key}" has been added.`,
+      });
+      form.reset();
+      closeDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Error Adding API Action",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,7 +99,7 @@ export default function AddApiActionDialog({ onApiActionAdded, environments, clo
               <FormItem>
                 <FormLabel>Key</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., default_model" {...field} />
+                  <Input placeholder="e.g., default_model" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -91,7 +112,7 @@ export default function AddApiActionDialog({ onApiActionAdded, environments, clo
               <FormItem>
                 <FormLabel>Value</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., gemini-1.5-pro" {...field} />
+                  <Input placeholder="e.g., gemini-1.5-pro" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,6 +127,7 @@ export default function AddApiActionDialog({ onApiActionAdded, environments, clo
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -126,11 +148,13 @@ export default function AddApiActionDialog({ onApiActionAdded, environments, clo
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add API Action</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add API Action"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
