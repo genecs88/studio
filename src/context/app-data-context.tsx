@@ -19,6 +19,7 @@ import {
   type User,
   type NewOrganizationData,
 } from '@/lib/placeholder-data';
+import { useToast } from '@/hooks/use-toast';
 
 interface FirebaseConfigDetails {
   authDomain?: string;
@@ -85,6 +86,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [orgPaths, setOrgPaths] = useState<OrgPath[]>([]);
   const [apiActions, setApiActions] = useState<ApiAction[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  
+  const { toast } = useToast();
 
   // Check auth status from sessionStorage on initial client load
   useEffect(() => {
@@ -170,11 +173,61 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (db) await addDoc(collection(db, 'environments'), data) };
   const updateEnvironment = async (data: Environment) => { if (db) await updateDoc(doc(db, 'environments', data.id), { ...data }) };
-  const deleteEnvironment = async (id: string) => { if (db) await deleteDoc(doc(db, 'environments', id)) };
+  const deleteEnvironment = async (envId: string) => {
+    if (!db) return;
+    const batch = writeBatch(db);
+    const envToDelete = environments.find(e => e.id === envId);
+    if (!envToDelete) {
+        toast({ variant: "destructive", title: "Error", description: "Environment not found."});
+        return;
+    }
+
+    batch.delete(doc(db, 'environments', envId));
+
+    const orgsToDelete = organizations.filter(o => o.environmentId === envId);
+    for (const org of orgsToDelete) {
+      batch.delete(doc(db, 'organizations', org.id));
+      
+      const keysToDelete = apiKeys.filter(k => k.organization === org.name && k.environment === envToDelete.name);
+      keysToDelete.forEach(key => batch.delete(doc(db, 'apiKeys', key.id)));
+
+      const pathsToDelete = orgPaths.filter(p => p.organizationId === org.id);
+      pathsToDelete.forEach(path => batch.delete(doc(db, 'orgPaths', path.id)));
+    }
+
+    const actionsToDelete = apiActions.filter(a => a.environmentId === envId);
+    actionsToDelete.forEach(action => batch.delete(doc(db, 'apiActions', action.id)));
+
+    await batch.commit();
+    toast({ title: "Success!", description: `Environment "${envToDelete.name}" and all its associated data have been deleted.`});
+  };
 
   const addOrganization = async (data: NewOrganizationData) => { if (db) await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
   const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (db) await updateDoc(doc(db, 'organizations', data.id), { ...data }) };
-  const deleteOrganization = async (id: string) => { if (db) await deleteDoc(doc(db, 'organizations', id)) };
+  const deleteOrganization = async (orgId: string) => {
+    if (!db) return;
+    const batch = writeBatch(db);
+    const orgToDelete = organizations.find(o => o.id === orgId);
+    if (!orgToDelete) {
+      toast({ variant: "destructive", title: "Error", description: "Organization not found."});
+      return;
+    }
+
+    const env = environments.find(e => e.id === orgToDelete.environmentId);
+    
+    batch.delete(doc(db, 'organizations', orgId));
+
+    if (env) {
+      const keysToDelete = apiKeys.filter(k => k.organization === orgToDelete.name && k.environment === env.name);
+      keysToDelete.forEach(key => batch.delete(doc(db, 'apiKeys', key.id)));
+    }
+    
+    const pathsToDelete = orgPaths.filter(p => p.organizationId === orgId);
+    pathsToDelete.forEach(path => batch.delete(doc(db, 'orgPaths', path.id)));
+    
+    await batch.commit();
+    toast({ title: "Success!", description: `Organization "${orgToDelete.name}" and all its associated data have been deleted.`});
+  };
 
   const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }) => {
     if (!db) return;
@@ -233,3 +286,5 @@ export function useAppData() {
   }
   return context;
 }
+
+    
