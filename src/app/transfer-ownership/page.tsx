@@ -137,10 +137,7 @@ export default function TransferOwnershipPage() {
 
     const urlToFetch = `${env.url}${transferAction.value}`;
     
-    const apiKeyData = apiKeys.find(k => {
-        const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
-        return keyOrg?.id === selectedOrganization;
-    });
+    const apiKeyData = apiKeys.find(k => k.organizationId === selectedOrganization && k.environmentId === selectedEnvironment);
 
     if (!apiKeyData) {
         setResponse("Error: API Key for the selected organization and environment not found.");

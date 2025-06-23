@@ -3,7 +3,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch, type Unsubscribe } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import {
   organizations as initialOrganizations,
   apiKeys as initialApiKeys,
@@ -57,7 +58,7 @@ interface AppDataContextType {
   deleteOrganization: (orgId: string) => Promise<void>;
 
   addApiKey: (key: { organizationId: string; environmentId: string; key: string }) => Promise<void>;
-  updateApiKey: (key: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => Promise<void>;
+  updateApiKey: (key: Omit<ApiKey, 'createdAt'>) => Promise<void>;
   deleteApiKey: (keyId: string) => Promise<void>;
   
   addOrgPath: (path: { organizationId: string; path: string; }) => Promise<void>;
@@ -93,15 +94,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // Check auth status from sessionStorage on initial client load
   useEffect(() => {
-    const storedAuth = sessionStorage.getItem('isAuthenticated') === 'true';
-    setIsAuthenticated(storedAuth);
-    setIsAuthChecked(true);
+    try {
+      const storedAuth = sessionStorage.getItem('isAuthenticated') === 'true';
+      setIsAuthenticated(storedAuth);
+    } catch (error) {
+      // sessionStorage is not available in SSR, so we can ignore this error.
+    } finally {
+      setIsAuthChecked(true);
+    }
   }, []);
 
   // Persist auth state in sessionStorage
   useEffect(() => {
     if (isAuthChecked) {
-      sessionStorage.setItem('isAuthenticated', String(isAuthenticated));
+      try {
+        sessionStorage.setItem('isAuthenticated', String(isAuthenticated));
+      } catch (error) {
+         // sessionStorage is not available in SSR, so we can ignore this error.
+      }
     }
   }, [isAuthenticated, isAuthChecked]);
   
@@ -170,11 +180,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // CRUD function implementations
   const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateUser = async (data: User) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'users', data.id), { ...data }) };
+  const updateUser = async (data: User) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'users', id), rest) };
   const deleteUser = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'users', id)) };
   
   const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'environments'), data) };
-  const updateEnvironment = async (data: Environment) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'environments', data.id), { ...data }) };
+  const updateEnvironment = async (data: Environment) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'environments', id), rest) };
   const deleteEnvironment = async (envId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
@@ -190,7 +200,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     for (const org of orgsToDelete) {
       batch.delete(doc(db, 'organizations', org.id));
       
-      const keysToDelete = apiKeys.filter(k => k.organization === org.name && k.environment === envToDelete.name);
+      const keysToDelete = apiKeys.filter(k => k.organizationId === org.id);
       keysToDelete.forEach(key => batch.delete(doc(db, 'apiKeys', key.id)));
 
       const pathsToDelete = orgPaths.filter(p => p.organizationId === org.id);
@@ -205,7 +215,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   const addOrganization = async (data: NewOrganizationData) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'organizations', data.id), { ...data }) };
+  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'organizations', id), rest) };
   const deleteOrganization = async (orgId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
@@ -214,15 +224,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       toast({ variant: "destructive", title: "Error", description: "Organization not found."});
       return;
     }
-
-    const env = environments.find(e => e.id === orgToDelete.environmentId);
     
     batch.delete(doc(db, 'organizations', orgId));
 
-    if (env) {
-      const keysToDelete = apiKeys.filter(k => k.organization === orgToDelete.name && k.environment === env.name);
-      keysToDelete.forEach(key => batch.delete(doc(db, 'apiKeys', key.id)));
-    }
+    const keysToDelete = apiKeys.filter(k => k.organizationId === orgId);
+    keysToDelete.forEach(key => batch.delete(doc(db, 'apiKeys', key.id)));
     
     const pathsToDelete = orgPaths.filter(p => p.organizationId === orgId);
     pathsToDelete.forEach(path => batch.delete(doc(db, 'orgPaths', path.id)));
@@ -233,37 +239,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }) => {
     if (!db) throw new Error(DB_ERROR_MSG);
-    const org = organizations.find(o => o.id === data.organizationId);
-    const env = environments.find(e => e.id === data.environmentId);
-    if(org && env) {
-      await addDoc(collection(db, 'apiKeys'), {
-        key: data.key,
-        organization: org.name,
-        environment: env.name,
-        createdAt: new Date().toISOString().split('T')[0],
-      });
-    }
+    await addDoc(collection(db, 'apiKeys'), {
+      ...data,
+      createdAt: new Date().toISOString().split('T')[0],
+    });
   };
-  const updateApiKey = async (data: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => {
+  const updateApiKey = async (data: Omit<ApiKey, 'createdAt'>) => {
     if (!db) throw new Error(DB_ERROR_MSG);
-    const org = organizations.find(o => o.id === data.organizationId);
-    const env = environments.find(e => e.id === data.environmentId);
-    if(org && env) {
-      await updateDoc(doc(db, 'apiKeys', data.id), { 
-        key: data.key,
-        organization: org.name,
-        environment: env.name,
-       });
-    }
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'apiKeys', id), rest);
   };
   const deleteApiKey = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiKeys', id)) };
 
   const addOrgPath = async (data: { organizationId: string; path: string; }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'orgPaths', data.id), { ...data }) };
+  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'orgPaths', id), rest) };
   const deleteOrgPath = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'orgPaths', id)) };
   
   const addApiAction = async (data: { key: string; value: string; environmentId: string }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await updateDoc(doc(db, 'apiActions', data.id), { ...data }) };
+  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'apiActions', id), rest) };
   const deleteApiAction = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiActions', id)) };
 
   const value = {

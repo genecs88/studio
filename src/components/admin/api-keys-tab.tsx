@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAppData } from "@/context/app-data-context";
 import {
   Card,
@@ -45,10 +45,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id: string) => void; onEdit: (apiKey: ApiKey) => void; }) {
+function ApiKeyRow({ 
+    apiKey, 
+    onDelete, 
+    onEdit, 
+    organizations, 
+    environments 
+}: { 
+    apiKey: ApiKey; 
+    onDelete: (id: string) => void; 
+    onEdit: (apiKey: ApiKey) => void; 
+    organizations: Organization[];
+    environments: Environment[];
+}) {
     const [isVisible, setIsVisible] = useState(false);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const { toast } = useToast();
+
+    const organizationName = useMemo(() => 
+        organizations.find(o => o.id === apiKey.organizationId)?.name || "Unknown", 
+        [apiKey.organizationId, organizations]
+    );
+    const environmentName = useMemo(() => 
+        environments.find(e => e.id === apiKey.environmentId)?.name || "Unknown",
+        [apiKey.environmentId, environments]
+    );
 
     const handleCopy = () => {
         if(navigator.clipboard) {
@@ -85,12 +106,12 @@ function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id
                     </Button>
                 </div>
             </TableCell>
-            <TableCell>{apiKey.organization}</TableCell>
+            <TableCell>{organizationName}</TableCell>
             <TableCell>
                 <Badge 
                     variant="secondary"
                 >
-                    {apiKey.environment}
+                    {environmentName}
                 </Badge>
             </TableCell>
             <TableCell>{apiKey.createdAt}</TableCell>
@@ -113,7 +134,7 @@ function ApiKeyRow({ apiKey, onDelete, onEdit }: { apiKey: ApiKey; onDelete: (id
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the API key for "{apiKey.organization}".
+                            This action cannot be undone. This will permanently delete the API key for "{organizationName}".
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -189,7 +210,7 @@ export default function ApiKeysTab({ apiKeys, organizations, environments }: Api
               </TableHeader>
               <TableBody>
                   {apiKeys.map((key) => (
-                      <ApiKeyRow key={key.id} apiKey={key} onDelete={deleteApiKey} onEdit={handleEditClick} />
+                      <ApiKeyRow key={key.id} apiKey={key} onDelete={deleteApiKey} onEdit={handleEditClick} organizations={organizations} environments={environments} />
                   ))}
               </TableBody>
               </Table>

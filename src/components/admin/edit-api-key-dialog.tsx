@@ -48,20 +48,17 @@ interface EditApiKeyDialogProps {
     organizations: Organization[];
     environments: Environment[];
     onOpenChange: (open: boolean) => void;
-    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => Promise<void>;
+    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditApiKeyDialog({ apiKey, organizations, environments, onOpenChange, onApiKeyUpdated }: EditApiKeyDialogProps) {
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
   
-  const findOrgId = (name: string, envId: string) => organizations.find(o => o.name === name && o.environmentId === envId)?.id;
-  const findEnvId = (name: string) => environments.find(e => e.name === name)?.id;
-
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
-      environmentId: findEnvId(apiKey.environment) || "",
-      organizationId: "",
+      environmentId: apiKey.environmentId,
+      organizationId: apiKey.organizationId,
       key: apiKey.key,
     },
   });
@@ -69,13 +66,12 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
   const selectedEnvironmentId = form.watch("environmentId");
 
   useEffect(() => {
-    const envId = findEnvId(apiKey.environment) || "";
     form.reset({
-      environmentId: envId,
-      organizationId: findOrgId(apiKey.organization, envId) || "",
+      environmentId: apiKey.environmentId,
+      organizationId: apiKey.organizationId,
       key: apiKey.key,
     });
-  }, [apiKey, form, organizations, environments]);
+  }, [apiKey, form]);
 
   useEffect(() => {
     if (selectedEnvironmentId) {

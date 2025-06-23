@@ -21,8 +21,8 @@ export type NewOrganizationData = {
 export type ApiKey = {
   id: string;
   key: string;
-  organization: string;
-  environment: string;
+  organizationId: string;
+  environmentId: string;
   createdAt: string;
 };
 
@@ -107,14 +107,14 @@ export const organizations: Organization[] = [
 ];
 
 export const apiKeys: ApiKey[] = [
-  { id: "key_1", key: "ek_ext_xxxxxxxxxxxxxxxxxxxx1234", organization: "Acme Inc.", environment: "external.radpair.com", createdAt: "2023-01-16" },
-  { id: "key_2", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx5678", organization: "Startup LLC", environment: "external.radpair.com", createdAt: "2023-02-21" },
-  { id: "key_3", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx9012", organization: "Innovate Corp", environment: "external.radpair.com", createdAt: "2023-03-11" },
+  { id: "key_1", key: "ek_ext_xxxxxxxxxxxxxxxxxxxx1234", organizationId: "org_1", environmentId: "env_1", createdAt: "2023-01-16" },
+  { id: "key_2", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx5678", organizationId: "org_2", environmentId: "env_1", createdAt: "2023-02-21" },
+  { id: "key_3", key: "ek_ext_xxxxxxxxxxxxxxxxxxxxx9012", organizationId: "org_3", environmentId: "env_1", createdAt: "2023-03-11" },
   {
     id: "key_4",
     key: "rsk_x4JRnF9s5neZf0X9KzRQWj3yDCTMuqLv81VJ9Scxa0t",
-    organization: "EugeneDemo",
-    environment: "external.radpair.com",
+    organizationId: "org_4",
+    environmentId: "env_1",
     createdAt: "2024-06-01"
   },
 ];
