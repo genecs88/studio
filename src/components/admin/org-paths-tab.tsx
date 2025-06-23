@@ -27,7 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Organization, type OrgPath, type Environment } from "@/lib/placeholder-data";
+import type { Organization, OrgPath, Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrgPathDialog from "./add-org-path-dialog";
 import { Badge } from "../ui/badge";
@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface OrgPathsTabProps {
   orgPaths: OrgPath[];
@@ -50,7 +51,7 @@ interface OrgPathsTabProps {
 }
 
 export default function OrgPathsTab({ orgPaths, organizations, environments }: OrgPathsTabProps) {
-  const { addOrgPath, updateOrgPath, deleteOrgPath } = useAppData();
+  const { addOrgPath, updateOrgPath, deleteOrgPath, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -78,6 +79,15 @@ export default function OrgPathsTab({ orgPaths, organizations, environments }: O
     const org = organizations.find((o) => o.id === organizationId);
     return org ? org.name : "Unknown";
   };
+  
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+      <PlusCircle className="h-3.5 w-3.5" />
+      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add Org Path
+      </span>
+    </Button>
+  );
 
   return (
     <>
@@ -92,12 +102,18 @@ export default function OrgPathsTab({ orgPaths, organizations, environments }: O
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Org Path
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
               <AddOrgPathDialog 
                 onOrgPathAdded={addOrgPath} 

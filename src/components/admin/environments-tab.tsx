@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
     return <Globe className="h-5 w-5 text-muted-foreground" />;
@@ -52,7 +53,7 @@ interface EnvironmentsTabProps {
 }
 
 export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) {
-  const { addEnvironment, updateEnvironment, deleteEnvironment } = useAppData();
+  const { addEnvironment, updateEnvironment, deleteEnvironment, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -76,6 +77,15 @@ export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) 
     }
   };
 
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+      <PlusCircle className="h-3.5 w-3.5" />
+      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add Environment
+      </span>
+    </Button>
+  );
+
   return (
     <>
       <Card>
@@ -89,12 +99,18 @@ export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) 
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Environment
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
               <AddEnvironmentDialog 
                 onEnvironmentAdded={addEnvironment} 

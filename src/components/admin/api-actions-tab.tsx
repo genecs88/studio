@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type ApiAction, type Environment } from "@/lib/placeholder-data";
+import type { ApiAction, Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiActionDialog from "./add-api-action-dialog";
 import EditApiActionDialog from "./edit-api-action-dialog";
@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface ApiActionsTabProps {
   apiActions: ApiAction[];
@@ -49,7 +50,7 @@ interface ApiActionsTabProps {
 }
 
 export default function ApiActionsTab({ apiActions, environments }: ApiActionsTabProps) {
-  const { addApiAction, updateApiAction, deleteApiAction } = useAppData();
+  const { addApiAction, updateApiAction, deleteApiAction, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -78,6 +79,15 @@ export default function ApiActionsTab({ apiActions, environments }: ApiActionsTa
     return env ? env.name : "Unknown";
   };
 
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+        <PlusCircle className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add API Action
+        </span>
+    </Button>
+  );
+
   return (
     <>
       <Card>
@@ -91,12 +101,18 @@ export default function ApiActionsTab({ apiActions, environments }: ApiActionsTa
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add API Action
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
               <AddApiActionDialog 
                 onApiActionAdded={addApiAction} 

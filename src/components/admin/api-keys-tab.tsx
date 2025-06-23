@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type ApiKey, type Organization, type Environment } from "@/lib/placeholder-data";
+import type { ApiKey, Organization, Environment } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -44,6 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 function ApiKeyRow({ 
     apiKey, 
@@ -155,7 +156,7 @@ interface ApiKeysTabProps {
 }
 
 export default function ApiKeysTab({ apiKeys, organizations, environments }: ApiKeysTabProps) {
-  const { addApiKey, updateApiKey, deleteApiKey } = useAppData();
+  const { addApiKey, updateApiKey, deleteApiKey, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
@@ -164,6 +165,15 @@ export default function ApiKeysTab({ apiKeys, organizations, environments }: Api
     setSelectedApiKey(apiKey);
     setEditDialogOpen(true);
   }
+
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+        <PlusCircle className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add API Key
+        </span>
+    </Button>
+  );
 
   return (
     <>
@@ -178,12 +188,18 @@ export default function ApiKeysTab({ apiKeys, organizations, environments }: Api
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="gap-1">
-                      <PlusCircle className="h-3.5 w-3.5" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                      Add API Key
-                      </span>
-                  </Button>
+                    {isDbInitialized ? (
+                        AddButton
+                    ) : (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>{AddButton}</TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Waiting for DB to initialize...</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </DialogTrigger>
                 <AddApiKeyDialog 
                   onApiKeyAdded={addApiKey} 

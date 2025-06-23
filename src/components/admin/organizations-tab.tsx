@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type Environment, type Organization } from "@/lib/placeholder-data";
+import type { Environment, Organization } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddOrganizationDialog from "./add-organization-dialog";
 import EditOrganizationDialog from "./edit-organization-dialog";
@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface OrganizationsTabProps {
   organizations: Organization[];
@@ -49,7 +50,7 @@ interface OrganizationsTabProps {
 }
 
 export default function OrganizationsTab({ organizations, environments }: OrganizationsTabProps) {
-  const { addOrganization, updateOrganization, deleteOrganization } = useAppData();
+  const { addOrganization, updateOrganization, deleteOrganization, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -77,6 +78,15 @@ export default function OrganizationsTab({ organizations, environments }: Organi
     const env = environments.find((e) => e.id === environmentId);
     return env ? env.name : "Unknown";
   };
+  
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+      <PlusCircle className="h-3.5 w-3.5" />
+      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add Organization
+      </span>
+    </Button>
+  );
 
   return (
     <>
@@ -91,12 +101,18 @@ export default function OrganizationsTab({ organizations, environments }: Organi
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Organization
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
               <AddOrganizationDialog 
                 onOrganizationAdded={addOrganization} 

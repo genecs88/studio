@@ -27,7 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type User } from "@/lib/placeholder-data";
+import type { User } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddUserDialog from "./add-user-dialog";
 import EditUserDialog from "./edit-user-dialog";
@@ -41,13 +41,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface UsersTabProps {
   users: User[];
 }
 
 export default function UsersTab({ users }: UsersTabProps) {
-  const { addUser, updateUser, deleteUser } = useAppData();
+  const { addUser, updateUser, deleteUser, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -70,6 +71,15 @@ export default function UsersTab({ users }: UsersTabProps) {
       setSelectedUser(null);
     }
   };
+  
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+        <PlusCircle className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add User
+        </span>
+    </Button>
+  );
 
   return (
     <>
@@ -82,12 +92,18 @@ export default function UsersTab({ users }: UsersTabProps) {
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add User
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
               <AddUserDialog onUserAdded={addUser} closeDialog={() => setAddDialogOpen(false)} />
             </Dialog>
