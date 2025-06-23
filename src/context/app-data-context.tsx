@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { db, connectionError as firebaseConnectionError } from '@/lib/firebase';
+import { db as firestoreDb, connectionError as firebaseConnectionError } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch, type Unsubscribe } from 'firebase/firestore';
 import {
   organizations as initialOrganizations,
@@ -116,6 +116,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   // Set up real-time listeners for all collections and check connection
   useEffect(() => {
+    const db = firestoreDb;
     // Set a timeout to prevent getting stuck in "connecting" state forever.
     const connectionTimeout = setTimeout(() => {
         if (!hasConnected.current) {
@@ -158,13 +159,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
 
     const initializeDb = async () => {
-      // This is the definitive guard clause.
-      // If `db` is not defined, we exit early, satisfying TypeScript's strict null checks.
       if (!db) {
         handleSnapshotError(new Error("Database not initialized during seeding check."));
         return false;
       }
-
       try {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         if (usersSnapshot.empty) {
@@ -232,29 +230,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
 
   const addUser = async (data: Omit<User, 'id' | 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
   const updateUser = async (data: User): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'users', id), rest);
   };
   const deleteUser = async (id: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'users', id));
   };
   
   const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'environments'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
   const updateEnvironment = async (data: Environment): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'environments', id), rest);
   };
   const deleteEnvironment = async (envId: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const batch = writeBatch(db);
     const envToDelete = environments.find(e => e.id === envId);
@@ -284,6 +288,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   const addOrganization = async (data: NewOrganizationData): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const orgData = {
       ...data,
@@ -293,11 +298,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     await addDoc(collection(db, 'organizations'), orgData);
   };
   const updateOrganization = async (data: Omit<Organization, 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'organizations', id), rest);
   };
   const deleteOrganization = async (orgId: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const batch = writeBatch(db);
     const orgToDelete = organizations.find(o => o.id === orgId);
@@ -319,6 +326,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'apiKeys'), {
       ...data,
@@ -326,39 +334,47 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   };
   const updateApiKey = async (data: Omit<ApiKey, 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'apiKeys', id), rest);
   };
   const deleteApiKey = async (id: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'apiKeys', id));
   };
 
   const addOrgPath = async (data: { organizationId: string; path: string; }): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
   const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'orgPaths', id), rest);
   };
   const deleteOrgPath = async (id: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'orgPaths', id));
   };
   
   const addApiAction = async (data: { key: string; value: string; environmentId: string }): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
   const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'apiActions', id), rest);
   };
   const deleteApiAction = async (id: string): Promise<void> => {
+    const db = firestoreDb;
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'apiActions', id));
   };
