@@ -188,8 +188,8 @@ export default function UpdateReportPage() {
                 >
                     {environments.map((env) => (
                         <div key={env.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={env.id} id={env.id} />
-                            <Label htmlFor={env.id} className="font-normal cursor-pointer">
+                            <RadioGroupItem value={env.id} id={`update-env-${env.id}`} />
+                            <Label htmlFor={`update-env-${env.id}`} className="font-normal cursor-pointer">
                                 {env.name}
                             </Label>
                         </div>

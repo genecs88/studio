@@ -181,8 +181,8 @@ export default function FindReportPage() {
                 >
                     {environments.map((env) => (
                         <div key={env.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={env.id} id={env.id} />
-                            <Label htmlFor={env.id} className="font-normal cursor-pointer">
+                            <RadioGroupItem value={env.id} id={`find-env-${env.id}`} />
+                            <Label htmlFor={`find-env-${env.id}`} className="font-normal cursor-pointer">
                                 {env.name}
                             </Label>
                         </div>
