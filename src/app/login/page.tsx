@@ -25,6 +25,7 @@ export default function LoginPage() {
     users,
     connectionStatus,
     connectionError,
+    firebaseConfigDetails,
   } = useAppData();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,7 +80,18 @@ export default function LoginPage() {
                 <Alert>
                   <AlertCircle className="h-4 w-4 animate-spin" />
                   <AlertTitle>Connecting...</AlertTitle>
-                  <AlertDescription>Attempting to connect to the database. Please wait.</AlertDescription>
+                  <AlertDescription>
+                    <p>Attempting to connect to the database. Please wait.</p>
+                    {firebaseConfigDetails.projectId && (
+                        <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono break-all">
+                            <p>Project ID: {firebaseConfigDetails.projectId}</p>
+                            <p>Auth Domain: {firebaseConfigDetails.authDomain}</p>
+                            <p>Storage Bucket: {firebaseConfigDetails.storageBucket}</p>
+                            <p>Messaging Sender ID: {firebaseConfigDetails.messagingSenderId}</p>
+                            <p>App ID: {firebaseConfigDetails.appId}</p>
+                        </div>
+                    )}
+                  </AlertDescription>
                 </Alert>
               )}
               {error && (

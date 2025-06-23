@@ -215,10 +215,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
                           {connectionStatus === 'error' && `Connection failed: ${connectionError}`}
                         </p>
                         {(connectionStatus === 'connected' || connectionStatus === 'connecting') && firebaseConfigDetails.projectId && (
-                          <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono">
+                          <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono break-all">
                               <p>Project ID: {firebaseConfigDetails.projectId}</p>
                               <p>Auth Domain: {firebaseConfigDetails.authDomain}</p>
                               <p>Storage Bucket: {firebaseConfigDetails.storageBucket}</p>
+                              <p>Messaging Sender ID: {firebaseConfigDetails.messagingSenderId}</p>
+                              <p>App ID: {firebaseConfigDetails.appId}</p>
                           </div>
                         )}
                       </div>

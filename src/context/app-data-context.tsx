@@ -19,6 +19,8 @@ interface FirebaseConfigDetails {
   authDomain?: string;
   projectId?: string;
   storageBucket?: string;
+  messagingSenderId?: string;
+  appId?: string;
 }
 
 interface AppDataContextType {
@@ -127,6 +129,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     });
 
     if (firebaseConnectionError) {
@@ -179,12 +183,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     let unsubscribers: Unsubscribe[] = [];
 
-    initializeDb().then(isInitialized => {
-      if (!isInitialized) {
-        // initializeDb calls handleSnapshotError on its own, which clears the timeout.
-        return;
-      }
-      
+    const setupListeners = () => {
       unsubscribers.push(onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment))), handleSnapshotError));
       unsubscribers.push(onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization))), handleSnapshotError));
       unsubscribers.push(onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey))), handleSnapshotError));
@@ -205,6 +204,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           },
           handleSnapshotError
       ));
+    }
+
+    initializeDb().then(isInitialized => {
+      if (isInitialized) {
+        setupListeners();
+      }
     });
 
     // Cleanup function
@@ -215,32 +220,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
-  // --- CRUD function implementations ---
-
-  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => {
+  const addUser = async (data: Omit<User, 'id' | 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
-  const updateUser = async (data: User) => {
+  const updateUser = async (data: User): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'users', id), rest);
   };
-  const deleteUser = async (id: string) => {
+  const deleteUser = async (id: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'users', id));
   };
   
-  const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>) => {
+  const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'environments'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
-  const updateEnvironment = async (data: Environment) => {
+  const updateEnvironment = async (data: Environment): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'environments', id), rest);
   };
-  const deleteEnvironment = async (envId: string) => {
+  const deleteEnvironment = async (envId: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const batch = writeBatch(db);
     const envToDelete = environments.find(e => e.id === envId);
@@ -269,7 +272,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     toast({ title: "Success!", description: `Environment "${envToDelete.name}" and all its associated data have been deleted.`});
   };
 
-  const addOrganization = async (data: NewOrganizationData) => {
+  const addOrganization = async (data: NewOrganizationData): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const orgData = {
       ...data,
@@ -278,12 +281,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
     await addDoc(collection(db, 'organizations'), orgData);
   };
-  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => {
+  const updateOrganization = async (data: Omit<Organization, 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'organizations', id), rest);
   };
-  const deleteOrganization = async (orgId: string) => {
+  const deleteOrganization = async (orgId: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const batch = writeBatch(db);
     const orgToDelete = organizations.find(o => o.id === orgId);
@@ -304,47 +307,47 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     toast({ title: "Success!", description: `Organization "${orgToDelete.name}" and all its associated data have been deleted.`});
   };
 
-  const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }) => {
+  const addApiKey = async (data: { organizationId: string; environmentId: string; key: string }): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'apiKeys'), {
       ...data,
       createdAt: new Date().toISOString().split('T')[0],
     });
   };
-  const updateApiKey = async (data: Omit<ApiKey, 'createdAt'>) => {
+  const updateApiKey = async (data: Omit<ApiKey, 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'apiKeys', id), rest);
   };
-  const deleteApiKey = async (id: string) => {
+  const deleteApiKey = async (id: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'apiKeys', id));
   };
 
-  const addOrgPath = async (data: { organizationId: string; path: string; }) => {
+  const addOrgPath = async (data: { organizationId: string; path: string; }): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
-  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => {
+  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'orgPaths', id), rest);
   };
-  const deleteOrgPath = async (id: string) => {
+  const deleteOrgPath = async (id: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'orgPaths', id));
   };
   
-  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => {
+  const addApiAction = async (data: { key: string; value: string; environmentId: string }): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
   };
-  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => {
+  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'apiActions', id), rest);
   };
-  const deleteApiAction = async (id: string) => {
+  const deleteApiAction = async (id: string): Promise<void> => {
     if (!db || !isDbInitialized) throw new Error(isDbInitialized ? DB_ERROR_MSG : DB_NOT_READY_MSG);
     await deleteDoc(doc(db, 'apiActions', id));
   };
