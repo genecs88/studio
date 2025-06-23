@@ -214,7 +214,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     toast({ title: "Success!", description: `Environment "${envToDelete.name}" and all its associated data have been deleted.`});
   };
 
-  const addOrganization = async (data: NewOrganizationData) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'organizations'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
+  const addOrganization = async (data: NewOrganizationData) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const orgData = {
+      ...data,
+      studyIdentifiers: data.studyIdentifiers || [],
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    await addDoc(collection(db, 'organizations'), orgData);
+  };
   const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'organizations', id), rest) };
   const deleteOrganization = async (orgId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);
