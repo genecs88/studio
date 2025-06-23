@@ -84,7 +84,12 @@ export default function EditOrganizationDialog({ organization, environments, onO
   const onSubmit = async (values: z.infer<typeof organizationSchema>) => {
     setIsSubmitting(true);
     try {
-      await onOrganizationUpdated({ id: organization.id, ...values });
+      await onOrganizationUpdated({
+        id: organization.id,
+        name: values.name,
+        environmentId: values.environmentId,
+        studyIdentifiers: values.studyIdentifiers || [],
+      });
       toast({
         title: "Success!",
         description: `Organization "${values.name}" has been updated.`,
