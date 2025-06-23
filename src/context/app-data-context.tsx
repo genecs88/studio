@@ -166,6 +166,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         if (usersSnapshot.empty) {
             console.log('Database appears empty, seeding with initial data...');
+            
+            if (!db) { // Guard clause to satisfy TypeScript compiler for batch operations
+                handleSnapshotError(new Error("Database not ready for seeding."));
+                return false;
+            }
             const batch = writeBatch(db);
 
             initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
