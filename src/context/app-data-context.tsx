@@ -159,8 +159,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     const initializeDb = async () => {
       // This is the definitive guard clause.
-      // If `db` is not defined, we exit early.
-      // TypeScript will now know that for the rest of this function, `db` is a valid Firestore instance.
+      // If `db` is not defined, we exit early, satisfying TypeScript's strict null checks.
       if (!db) {
         handleSnapshotError(new Error("Database not initialized during seeding check."));
         return false;
@@ -169,7 +168,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         if (usersSnapshot.empty) {
             console.log('Database appears empty, seeding with initial data...');
-            
             const batch = writeBatch(db);
 
             initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
