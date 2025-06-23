@@ -123,7 +123,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             setConnectionError('Connection timed out. Please check your network and Firebase project configuration, including Firestore security rules.');
             setIsDbInitialized(false);
         }
-    }, 15000); // 15-second timeout
+    }, 60000); // 60-second timeout
 
     setFirebaseConfigDetails({
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
