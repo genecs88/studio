@@ -36,11 +36,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, setIsAuthenticated } = useAppData();
+  const { isAuthenticated, setIsAuthenticated, connectionStatus, connectionError } = useAppData();
 
   useEffect(() => {
     if (!isAuthenticated && pathname !== '/login') {
@@ -154,7 +156,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center justify-start gap-3 p-2 w-full h-auto text-left">
                     <Avatar>
-                      <AvatarImage src="https://placehold.co/40x40.png" alt="@user" />
+                      <AvatarImage src="https://placehold.co/40x40.png" alt="@user" data-ai-hint="avatar" />
                       <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
@@ -180,7 +182,27 @@ function AppContent({ children }: { children: React.ReactNode }) {
               <SidebarTrigger />
             </div>
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className={cn("h-2.5 w-2.5 rounded-full",
+                        connectionStatus === 'connected' && 'bg-green-500',
+                        connectionStatus === 'connecting' && 'bg-yellow-500 animate-pulse',
+                        connectionStatus === 'error' && 'bg-red-500'
+                      )} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {connectionStatus === 'connected' && 'Connected to Firestore'}
+                        {connectionStatus === 'connecting' && 'Connecting to Firestore...'}
+                        {connectionStatus === 'error' && `Connection failed: ${connectionError}`}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <span className="text-sm text-muted-foreground">Welcome, Admin!</span>
+              </div>
             </div>
           </header>
           <main className="p-4 md:p-6">{children}</main>

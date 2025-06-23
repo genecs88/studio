@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch, Unsubscribe } from 'firebase/firestore';
 import {
   organizations as initialOrganizations,
   apiKeys as initialApiKeys,
@@ -23,6 +23,8 @@ import {
 interface AppDataContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  connectionStatus: 'connecting' | 'connected' | 'error';
+  connectionError: string | null;
   
   // Data from Firestore
   environments: Environment[];
@@ -66,6 +68,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return false;
     return window.sessionStorage.getItem('isAuthenticated') === 'true';
   });
+  
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // State for data fetched from Firestore
   const [environments, setEnvironments] = useState<Environment[]>([]);
@@ -82,13 +87,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated]);
   
-  // Seed database with initial data if it's empty
+  // Set up real-time listeners for all collections and check connection
   useEffect(() => {
-    const seedDatabase = async () => {
-      // Only run seeding if db is available
-      if (!db) return;
+    if (!db) {
+      setConnectionStatus('error');
+      setConnectionError("Firebase configuration is missing. Check your .env.local file.");
+      return;
+    }
+
+    setConnectionStatus('connecting');
+    let unsubscribers: Unsubscribe[] = [];
+
+    const initializeAndListen = async () => {
       try {
+        // Test connection and seed if necessary
         const usersSnapshot = await getDocs(collection(db, 'users'));
+        setConnectionStatus('connected');
+        setConnectionError(null);
+
         if (usersSnapshot.empty) {
           console.log('Database appears empty, seeding with initial data...');
           const batch = writeBatch(db);
@@ -103,32 +119,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           await batch.commit();
           console.log('Database seeded successfully.');
         }
-      } catch (error) {
-        console.error("Error seeding database:", error);
+        
+        // Now that connection is verified, set up listeners
+        unsubscribers.push(onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment)))));
+        unsubscribers.push(onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization)))));
+        unsubscribers.push(onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey)))));
+        unsubscribers.push(onSnapshot(collection(db, 'orgPaths'), snap => setOrgPaths(snap.docs.map(d => ({...d.data(), id: d.id } as OrgPath)))));
+        unsubscribers.push(onSnapshot(collection(db, 'apiActions'), snap => setApiActions(snap.docs.map(d => ({...d.data(), id: d.id } as ApiAction)))));
+        unsubscribers.push(onSnapshot(collection(db, 'users'), snap => setUsers(snap.docs.map(d => ({...d.data(), id: d.id } as User)))));
+
+      } catch (e: any) {
+        console.error("Firestore connection/initialization failed:", e);
+        setConnectionStatus('error');
+        setConnectionError(e.message);
       }
     };
-    seedDatabase();
-  }, []);
+    
+    initializeAndListen();
 
-  // Set up real-time listeners for all collections
-  useEffect(() => {
-    // Only set up listeners if db is available
-    if (!db) return;
-
-    const unsubEnvironments = onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment))));
-    const unsubOrganizations = onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization))));
-    const unsubApiKeys = onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey))));
-    const unsubOrgPaths = onSnapshot(collection(db, 'orgPaths'), snap => setOrgPaths(snap.docs.map(d => ({...d.data(), id: d.id } as OrgPath))));
-    const unsubApiActions = onSnapshot(collection(db, 'apiActions'), snap => setApiActions(snap.docs.map(d => ({...d.data(), id: d.id } as ApiAction))));
-    const unsubUsers = onSnapshot(collection(db, 'users'), snap => setUsers(snap.docs.map(d => ({...d.data(), id: d.id } as User))));
-
+    // Cleanup function
     return () => {
-      unsubEnvironments();
-      unsubOrganizations();
-      unsubApiKeys();
-      unsubOrgPaths();
-      unsubApiActions();
-      unsubUsers();
+      unsubscribers.forEach(unsub => unsub());
     };
   }, []);
 
@@ -182,6 +193,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const value = {
     isAuthenticated, setIsAuthenticated,
+    connectionStatus, connectionError,
     environments, organizations, apiKeys, orgPaths, apiActions, users,
     addUser, updateUser, deleteUser,
     addEnvironment, updateEnvironment, deleteEnvironment,
