@@ -12,14 +12,8 @@ import {
   orgPaths as initialOrgPaths,
   apiActions as initialApiActions,
   users as initialUsers,
-  type Organization,
-  type ApiKey,
-  type Environment,
-  type OrgPath,
-  type ApiAction,
-  type User,
-  type NewOrganizationData,
 } from '@/lib/placeholder-data';
+import type { Organization, ApiKey, Environment, OrgPath, ApiAction, User, NewOrganizationData } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 
 interface FirebaseConfigDetails {
@@ -49,7 +43,7 @@ interface AppDataContextType {
   updateUser: (user: User) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
 
-  addEnvironment: (env: Omit<Environment, 'id'>) => Promise<void>;
+  addEnvironment: (env: Omit<Environment, 'id' | 'createdAt'>) => Promise<void>;
   updateEnvironment: (env: Environment) => Promise<void>;
   deleteEnvironment: (envId: string) => Promise<void>;
 
@@ -183,7 +177,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const updateUser = async (data: User) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'users', id), rest) };
   const deleteUser = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'users', id)) };
   
-  const addEnvironment = async (data: Omit<Environment, 'id'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'environments'), data) };
+  const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'environments'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
   const updateEnvironment = async (data: Environment) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'environments', id), rest) };
   const deleteEnvironment = async (envId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);

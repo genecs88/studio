@@ -22,7 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Environment } from "@/lib/placeholder-data";
+import type { Environment } from "@/lib/placeholder-data";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,7 +32,7 @@ const environmentSchema = z.object({
 });
 
 interface AddEnvironmentDialogProps {
-  onEnvironmentAdded: (newEnv: Omit<Environment, 'id'>) => Promise<void>;
+  onEnvironmentAdded: (newEnv: Omit<Environment, 'id' | 'createdAt'>) => Promise<void>;
   closeDialog: () => void;
 }
 

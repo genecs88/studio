@@ -29,6 +29,7 @@ export type Environment = {
   id:string;
   name: string;
   url: string;
+  createdAt: string;
 };
 
 export type OrgPath = {
@@ -119,7 +120,7 @@ export const apiKeys: ApiKey[] = [
 ];
 
 export const environments: Environment[] = [
-  { id: "env_1", name: "external.radpair.com", url: "https://api.radpair.com" },
+  { id: "env_1", name: "external.radpair.com", url: "https://api.radpair.com", createdAt: "2023-01-01" },
 ];
 
 export const orgPaths: OrgPath[] = [

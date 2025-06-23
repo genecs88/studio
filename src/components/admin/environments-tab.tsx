@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type Environment } from "@/lib/placeholder-data";
+import type { Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddEnvironmentDialog from "./add-environment-dialog";
 import EditEnvironmentDialog from "./edit-environment-dialog";
@@ -111,6 +111,7 @@ export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) 
                 <TableHead>Name</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead>ID</TableHead>
+                <TableHead>Created At</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -129,6 +130,7 @@ export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) 
                   <TableCell>
                     <Badge variant="outline">{env.id}</Badge>
                   </TableCell>
+                  <TableCell>{env.createdAt}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
