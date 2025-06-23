@@ -42,7 +42,7 @@ import { cn } from '@/lib/utils';
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, isAuthChecked, setIsAuthenticated, connectionStatus, connectionError } = useAppData();
+  const { isAuthenticated, isAuthChecked, setIsAuthenticated, connectionStatus, connectionError, firebaseConfigDetails } = useAppData();
 
   useEffect(() => {
     if (isAuthChecked && !isAuthenticated && pathname !== '/login') {
@@ -198,11 +198,20 @@ function AppContent({ children }: { children: React.ReactNode }) {
                       )} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>
-                        {connectionStatus === 'connected' && 'Connected to Firestore'}
-                        {connectionStatus === 'connecting' && 'Connecting to Firestore...'}
-                        {connectionStatus === 'error' && `Connection failed: ${connectionError}`}
-                      </p>
+                      <div>
+                        <p>
+                          {connectionStatus === 'connected' && 'Connected to Firestore'}
+                          {connectionStatus === 'connecting' && 'Connecting to Firestore...'}
+                          {connectionStatus === 'error' && `Connection failed: ${connectionError}`}
+                        </p>
+                        {(connectionStatus === 'connected' || connectionStatus === 'connecting') && firebaseConfigDetails.projectId && (
+                          <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono">
+                              <p>Project ID: {firebaseConfigDetails.projectId}</p>
+                              <p>Auth Domain: {firebaseConfigDetails.authDomain}</p>
+                              <p>Storage Bucket: {firebaseConfigDetails.storageBucket}</p>
+                          </div>
+                        )}
+                      </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

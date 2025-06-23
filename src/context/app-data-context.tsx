@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch, Unsubscribe } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs, writeBatch, type Unsubscribe } from 'firebase/firestore';
 import {
   organizations as initialOrganizations,
   apiKeys as initialApiKeys,
@@ -20,12 +20,19 @@ import {
   type NewOrganizationData,
 } from '@/lib/placeholder-data';
 
+interface FirebaseConfigDetails {
+  authDomain?: string;
+  projectId?: string;
+  storageBucket?: string;
+}
+
 interface AppDataContextType {
   isAuthenticated: boolean;
   isAuthChecked: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   connectionStatus: 'connecting' | 'connected' | 'error';
   connectionError: string | null;
+  firebaseConfigDetails: FirebaseConfigDetails;
   
   // Data from Firestore
   environments: Environment[];
@@ -69,6 +76,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [firebaseConfigDetails, setFirebaseConfigDetails] = useState<FirebaseConfigDetails>({});
 
   // State for data fetched from Firestore
   const [environments, setEnvironments] = useState<Environment[]>([]);
@@ -94,6 +102,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   // Set up real-time listeners for all collections and check connection
   useEffect(() => {
+    // Reading env variables and setting them to state.
+    setFirebaseConfigDetails({
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
+
     if (!db) {
       setConnectionStatus('error');
       setConnectionError("Firebase configuration is missing. Check your .env.local file.");
@@ -198,7 +213,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const value = {
     isAuthenticated, setIsAuthenticated, isAuthChecked,
-    connectionStatus, connectionError,
+    connectionStatus, connectionError, firebaseConfigDetails,
     environments, organizations, apiKeys, orgPaths, apiActions, users,
     addUser, updateUser, deleteUser,
     addEnvironment, updateEnvironment, deleteEnvironment,
