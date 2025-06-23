@@ -167,21 +167,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (usersSnapshot.empty) {
             console.log('Database appears empty, seeding with initial data...');
             
-            if (!db) { // Guard clause to satisfy TypeScript compiler for batch operations
-                handleSnapshotError(new Error("Database not ready for seeding."));
-                return false;
-            }
-            const batch = writeBatch(db);
+            // This structure guarantees `db` is not undefined for all subsequent operations.
+            if (db) {
+                const batch = writeBatch(db);
 
-            initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
-            initialOrganizations.forEach(item => batch.set(doc(db, 'organizations', item.id), item));
-            initialApiKeys.forEach(item => batch.set(doc(db, 'apiKeys', item.id), item));
-            initialOrgPaths.forEach(item => batch.set(doc(db, 'orgPaths', item.id), item));
-            initialApiActions.forEach(item => batch.set(doc(db, 'apiActions', item.id), item));
-            initialUsers.forEach(item => batch.set(doc(db, 'users', item.id), item));
-            
-            await batch.commit();
-            console.log('Database seeded successfully.');
+                initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
+                initialOrganizations.forEach(item => batch.set(doc(db, 'organizations', item.id), item));
+                initialApiKeys.forEach(item => batch.set(doc(db, 'apiKeys', item.id), item));
+                initialOrgPaths.forEach(item => batch.set(doc(db, 'orgPaths', item.id), item));
+                initialApiActions.forEach(item => batch.set(doc(db, 'apiActions', item.id), item));
+                initialUsers.forEach(item => batch.set(doc(db, 'users', item.id), item));
+                
+                await batch.commit();
+                console.log('Database seeded successfully.');
+            } else {
+                 handleSnapshotError(new Error("Database not ready for seeding."));
+                 return false;
+            }
         }
       } catch (error) {
         handleSnapshotError(error as Error);
