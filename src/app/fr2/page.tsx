@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
 
-export default function TransferOwnershipPage() {
+export default function FR2Page() {
   const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
 
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
