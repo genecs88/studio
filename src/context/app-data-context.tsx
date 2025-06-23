@@ -113,7 +113,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   
   // Set up real-time listeners for all collections and check connection
   useEffect(() => {
-    // Reading env variables and setting them to state.
     setFirebaseConfigDetails({
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -123,61 +122,65 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (!db) {
       setConnectionStatus('error');
       setConnectionError("Firebase configuration is missing. Check your .env.local file.");
-      setIsDbInitialized(false);
       return;
     }
 
-    setConnectionStatus('connecting');
-    setIsDbInitialized(false);
+    const handleSnapshotError = (error: Error) => {
+      console.error("Firestore snapshot error:", error);
+      setConnectionStatus('error');
+      setConnectionError(error.message);
+      setIsDbInitialized(false);
+    };
+
+    // Check for seeding once, at the beginning.
+    const checkAndSeed = async () => {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        if (usersSnapshot.empty) {
+            console.log('Database appears empty, seeding with initial data...');
+            const batch = writeBatch(db);
+
+            initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
+            initialOrganizations.forEach(item => batch.set(doc(db, 'organizations', item.id), item));
+            initialApiKeys.forEach(item => batch.set(doc(db, 'apiKeys', item.id), item));
+            initialOrgPaths.forEach(item => batch.set(doc(db, 'orgPaths', item.id), item));
+            initialApiActions.forEach(item => batch.set(doc(db, 'apiActions', item.id), item));
+            initialUsers.forEach(item => batch.set(doc(db, 'users', item.id), item));
+            
+            await batch.commit();
+            console.log('Database seeded successfully.');
+        }
+    };
+
     let unsubscribers: Unsubscribe[] = [];
 
-    const initializeAndListen = async () => {
-      try {
-        // Test connection and seed if necessary
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        setConnectionStatus('connected');
-        setConnectionError(null);
-
-        if (usersSnapshot.empty) {
-          console.log('Database appears empty, seeding with initial data...');
-          const batch = writeBatch(db);
-
-          initialEnvironments.forEach(item => batch.set(doc(db, 'environments', item.id), item));
-          initialOrganizations.forEach(item => batch.set(doc(db, 'organizations', item.id), item));
-          initialApiKeys.forEach(item => batch.set(doc(db, 'apiKeys', item.id), item));
-          initialOrgPaths.forEach(item => batch.set(doc(db, 'orgPaths', item.id), item));
-          initialApiActions.forEach(item => batch.set(doc(db, 'apiActions', item.id), item));
-          initialUsers.forEach(item => batch.set(doc(db, 'users', item.id), item));
-
-          await batch.commit();
-          console.log('Database seeded successfully.');
-        }
+    checkAndSeed().then(() => {
+        // After seeding check, attach listeners
+        unsubscribers.push(onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment))), handleSnapshotError));
+        unsubscribers.push(onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization))), handleSnapshotError));
+        unsubscribers.push(onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey))), handleSnapshotError));
+        unsubscribers.push(onSnapshot(collection(db, 'orgPaths'), snap => setOrgPaths(snap.docs.map(d => ({...d.data(), id: d.id } as OrgPath))), handleSnapshotError));
+        unsubscribers.push(onSnapshot(collection(db, 'apiActions'), snap => setApiActions(snap.docs.map(d => ({...d.data(), id: d.id } as ApiAction))), handleSnapshotError));
         
-        // Now that connection is verified, set up listeners
-        unsubscribers.push(onSnapshot(collection(db, 'environments'), snap => setEnvironments(snap.docs.map(d => ({...d.data(), id: d.id } as Environment)))));
-        unsubscribers.push(onSnapshot(collection(db, 'organizations'), snap => setOrganizations(snap.docs.map(d => ({...d.data(), id: d.id } as Organization)))));
-        unsubscribers.push(onSnapshot(collection(db, 'apiKeys'), snap => setApiKeys(snap.docs.map(d => ({...d.data(), id: d.id } as ApiKey)))));
-        unsubscribers.push(onSnapshot(collection(db, 'orgPaths'), snap => setOrgPaths(snap.docs.map(d => ({...d.data(), id: d.id } as OrgPath)))));
-        unsubscribers.push(onSnapshot(collection(db, 'apiActions'), snap => setApiActions(snap.docs.map(d => ({...d.data(), id: d.id } as ApiAction)))));
-        unsubscribers.push(onSnapshot(collection(db, 'users'), snap => setUsers(snap.docs.map(d => ({...d.data(), id: d.id } as User)))));
-        
-        setIsDbInitialized(true);
-
-      } catch (e: any) {
-        console.error("Firestore connection/initialization failed:", e);
-        setConnectionStatus('error');
-        setConnectionError(e.message);
-        setIsDbInitialized(false);
-      }
-    };
-    
-    initializeAndListen();
+        unsubscribers.push(onSnapshot(collection(db, 'users'), 
+            (snap) => {
+                setUsers(snap.docs.map(d => ({...d.data(), id: d.id } as User)));
+                // Once we get the first successful snapshot for users, we're ready.
+                if (connectionStatus !== 'connected') {
+                  setConnectionStatus('connected');
+                  setConnectionError(null);
+                  setIsDbInitialized(true);
+                }
+            },
+            handleSnapshotError
+        ));
+    }).catch(handleSnapshotError);
 
     // Cleanup function
     return () => {
       unsubscribers.forEach(unsub => unsub());
     };
   }, []);
+
 
   // --- CRUD function implementations ---
 
