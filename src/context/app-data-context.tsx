@@ -172,13 +172,31 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // CRUD function implementations
-  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateUser = async (data: User) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'users', id), rest) };
-  const deleteUser = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'users', id)) };
+  // --- CRUD function implementations ---
+
+  const addUser = async (data: Omit<User, 'id' | 'createdAt'>) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await addDoc(collection(db, 'users'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
+  };
+  const updateUser = async (data: User) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'users', id), rest);
+  };
+  const deleteUser = async (id: string) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await deleteDoc(doc(db, 'users', id));
+  };
   
-  const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'environments'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateEnvironment = async (data: Environment) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'environments', id), rest) };
+  const addEnvironment = async (data: Omit<Environment, 'id' | 'createdAt'>) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await addDoc(collection(db, 'environments'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
+  };
+  const updateEnvironment = async (data: Environment) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'environments', id), rest);
+  };
   const deleteEnvironment = async (envId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
@@ -217,7 +235,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
     await addDoc(collection(db, 'organizations'), orgData);
   };
-  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'organizations', id), rest) };
+  const updateOrganization = async (data: Omit<Organization, 'createdAt'>) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'organizations', id), rest);
+  };
   const deleteOrganization = async (orgId: string) => {
     if (!db) throw new Error(DB_ERROR_MSG);
     const batch = writeBatch(db);
@@ -251,15 +273,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const { id, ...rest } = data;
     await updateDoc(doc(db, 'apiKeys', id), rest);
   };
-  const deleteApiKey = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiKeys', id)) };
+  const deleteApiKey = async (id: string) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await deleteDoc(doc(db, 'apiKeys', id));
+  };
 
-  const addOrgPath = async (data: { organizationId: string; path: string; }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'orgPaths', id), rest) };
-  const deleteOrgPath = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'orgPaths', id)) };
+  const addOrgPath = async (data: { organizationId: string; path: string; }) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await addDoc(collection(db, 'orgPaths'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
+  };
+  const updateOrgPath = async (data: Omit<OrgPath, 'createdAt'>) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'orgPaths', id), rest);
+  };
+  const deleteOrgPath = async (id: string) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await deleteDoc(doc(db, 'orgPaths', id));
+  };
   
-  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => { if (!db) throw new Error(DB_ERROR_MSG); await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] }) };
-  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => { if (!db) throw new Error(DB_ERROR_MSG); const { id, ...rest } = data; await updateDoc(doc(db, 'apiActions', id), rest) };
-  const deleteApiAction = async (id: string) => { if (!db) throw new Error(DB_ERROR_MSG); await deleteDoc(doc(db, 'apiActions', id)) };
+  const addApiAction = async (data: { key: string; value: string; environmentId: string }) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await addDoc(collection(db, 'apiActions'), { ...data, createdAt: new Date().toISOString().split('T')[0] });
+  };
+  const updateApiAction = async (data: Omit<ApiAction, 'createdAt'>) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    const { id, ...rest } = data;
+    await updateDoc(doc(db, 'apiActions', id), rest);
+  };
+  const deleteApiAction = async (id: string) => {
+    if (!db) throw new Error(DB_ERROR_MSG);
+    await deleteDoc(doc(db, 'apiActions', id));
+  };
 
   const value = {
     isAuthenticated, setIsAuthenticated, isAuthChecked,
