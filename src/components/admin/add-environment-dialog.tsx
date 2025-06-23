@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -21,6 +22,9 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import type { Environment } from "@/lib/placeholder-data";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const environmentSchema = z.object({
   name: z.string().min(1, "Environment name is required"),
@@ -28,10 +32,14 @@ const environmentSchema = z.object({
 });
 
 interface AddEnvironmentDialogProps {
-  onEnvironmentAdded: (newEnv: z.infer<typeof environmentSchema>) => void;
+  onEnvironmentAdded: (newEnv: Omit<Environment, 'id' | 'createdAt'>) => Promise<void>;
+  closeDialog: () => void;
 }
 
-export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironmentDialogProps) {
+export default function AddEnvironmentDialog({ onEnvironmentAdded, closeDialog }: AddEnvironmentDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof environmentSchema>>({
     resolver: zodResolver(environmentSchema),
     defaultValues: {
@@ -40,9 +48,27 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironm
     },
   });
 
-  const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    onEnvironmentAdded(values);
-    form.reset();
+  const onSubmit = async (values: z.infer<typeof environmentSchema>) => {
+    setIsSubmitting(true);
+    try {
+      await onEnvironmentAdded(values);
+      toast({
+        title: "Success!",
+        description: `Environment "${values.name}" has been added.`,
+      });
+      form.reset();
+      closeDialog();
+    } catch (error) {
+      console.error("Failed to add environment", error);
+      const message = error instanceof Error ? error.message : "Could not add the environment. Please try again.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,7 +88,7 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironm
               <FormItem>
                 <FormLabel>Environment Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Production" {...field} />
+                  <Input placeholder="e.g., Production" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -75,7 +101,7 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironm
               <FormItem>
                 <FormLabel>URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., https://api.example.com" {...field} />
+                  <Input placeholder="e.g., https://api.example.com" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -83,11 +109,13 @@ export default function AddEnvironmentDialog({ onEnvironmentAdded }: AddEnvironm
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add Environment</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Environment"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

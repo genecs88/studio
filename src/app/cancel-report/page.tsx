@@ -129,10 +129,7 @@ export default function CancelReportPage() {
 
     const urlToFetch = `${env.url}${cancelAction.value}`;
     
-    const apiKeyData = apiKeys.find(k => {
-        const keyOrg = organizations.find(o => o.name === k.organization && o.environmentId === env.id);
-        return keyOrg?.id === selectedOrganization;
-    });
+    const apiKeyData = apiKeys.find(k => k.organizationId === selectedOrganization && k.environmentId === selectedEnvironment);
 
     if (!apiKeyData) {
         setResponse("Error: API Key for the selected organization and environment not found.");
@@ -184,8 +181,8 @@ export default function CancelReportPage() {
                 >
                     {environments.map((env) => (
                         <div key={env.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={env.id} id={env.id} />
-                            <Label htmlFor={env.id} className="font-normal cursor-pointer">
+                            <RadioGroupItem value={env.id} id={`cancel-env-${env.id}`} />
+                            <Label htmlFor={`cancel-env-${env.id}`} className="font-normal cursor-pointer">
                                 {env.name}
                             </Label>
                         </div>

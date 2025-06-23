@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -21,7 +22,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Environment } from "@/lib/placeholder-data";
+import { useToast } from "@/hooks/use-toast";
+import type { Environment } from "@/lib/placeholder-data";
 
 const environmentSchema = z.object({
   name: z.string().min(1, "Environment name is required"),
@@ -31,10 +33,13 @@ const environmentSchema = z.object({
 interface EditEnvironmentDialogProps {
   environment: Environment;
   onOpenChange: (open: boolean) => void;
-  onEnvironmentUpdated: (updatedEnv: Environment) => void;
+  onEnvironmentUpdated: (updatedEnv: Environment) => Promise<void>;
 }
 
 export default function EditEnvironmentDialog({ environment, onOpenChange, onEnvironmentUpdated }: EditEnvironmentDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof environmentSchema>>({
     resolver: zodResolver(environmentSchema),
     defaultValues: {
@@ -50,9 +55,25 @@ export default function EditEnvironmentDialog({ environment, onOpenChange, onEnv
     });
   }, [environment, form]);
 
-  const onSubmit = (values: z.infer<typeof environmentSchema>) => {
-    onEnvironmentUpdated({ ...environment, ...values });
-    onOpenChange(false);
+  const onSubmit = async (values: z.infer<typeof environmentSchema>) => {
+    setIsSubmitting(true);
+    try {
+      await onEnvironmentUpdated({ ...environment, ...values });
+      toast({
+        title: "Success!",
+        description: `Environment "${values.name}" has been updated.`,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update the environment.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +93,7 @@ export default function EditEnvironmentDialog({ environment, onOpenChange, onEnv
               <FormItem>
                 <FormLabel>Environment Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Production" {...field} />
+                  <Input placeholder="e.g., Production" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -85,17 +106,19 @@ export default function EditEnvironmentDialog({ environment, onOpenChange, onEnv
               <FormItem>
                 <FormLabel>URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., https://api.example.com" {...field} />
+                  <Input placeholder="e.g., https://api.example.com" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

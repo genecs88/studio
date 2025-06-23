@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -27,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type Environment } from "@/lib/placeholder-data";
+import type { Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddEnvironmentDialog from "./add-environment-dialog";
 import EditEnvironmentDialog from "./edit-environment-dialog";
@@ -41,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
     return <Globe className="h-5 w-5 text-muted-foreground" />;
@@ -48,10 +50,10 @@ const EnvironmentIcon = ({ name }: { name: Environment["name"] }) => {
 
 interface EnvironmentsTabProps {
   environments: Environment[];
-  setEnvironments: React.Dispatch<React.SetStateAction<Environment[]>>;
 }
 
-export default function EnvironmentsTab({ environments, setEnvironments }: EnvironmentsTabProps) {
+export default function EnvironmentsTab({ environments }: EnvironmentsTabProps) {
+  const { addEnvironment, updateEnvironment, deleteEnvironment, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -67,27 +69,22 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedEnv) {
-      setEnvironments(environments.filter((env) => env.id !== selectedEnv.id));
+      await deleteEnvironment(selectedEnv.id);
       setDeleteDialogOpen(false);
       setSelectedEnv(null);
     }
   };
 
-  const handleAddEnvironment = (newEnvData: { name: string; url: string }) => {
-    const newEnv: Environment = {
-      id: `env_${Date.now()}`,
-      name: newEnvData.name,
-      url: newEnvData.url,
-    };
-    setEnvironments(prevEnvs => [...prevEnvs, newEnv]);
-    setAddDialogOpen(false);
-  };
-
-  const onEnvironmentUpdated = (updatedEnv: Environment) => {
-    setEnvironments(envs => envs.map(env => env.id === updatedEnv.id ? updatedEnv : env));
-  };
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+      <PlusCircle className="h-3.5 w-3.5" />
+      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add Environment
+      </span>
+    </Button>
+  );
 
   return (
     <>
@@ -102,14 +99,23 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Environment
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
-              <AddEnvironmentDialog onEnvironmentAdded={handleAddEnvironment} />
+              <AddEnvironmentDialog 
+                onEnvironmentAdded={addEnvironment} 
+                closeDialog={() => setAddDialogOpen(false)} 
+              />
             </Dialog>
           </div>
         </CardHeader>
@@ -121,6 +127,7 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
                 <TableHead>Name</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead>ID</TableHead>
+                <TableHead>Created At</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -139,6 +146,7 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
                   <TableCell>
                     <Badge variant="outline">{env.id}</Badge>
                   </TableCell>
+                  <TableCell>{env.createdAt}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -167,7 +175,7 @@ export default function EnvironmentsTab({ environments, setEnvironments }: Envir
       
       {selectedEnv && (
         <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} onEnvironmentUpdated={onEnvironmentUpdated} />
+            <EditEnvironmentDialog environment={selectedEnv} onOpenChange={setEditDialogOpen} onEnvironmentUpdated={updateEnvironment} />
         </Dialog>
       )}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

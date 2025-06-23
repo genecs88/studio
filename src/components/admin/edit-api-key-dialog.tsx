@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,10 +29,11 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  type Environment,
-  type Organization,
-  type ApiKey,
+import { useToast } from "@/hooks/use-toast";
+import type {
+  Environment,
+  Organization,
+  ApiKey,
 } from "@/lib/placeholder-data";
 
 const apiKeySchema = z.object({
@@ -47,20 +49,19 @@ interface EditApiKeyDialogProps {
     organizations: Organization[];
     environments: Environment[];
     onOpenChange: (open: boolean) => void;
-    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt' | 'organization' | 'environment'> & { organizationId: string; environmentId: string }) => void;
+    onApiKeyUpdated: (updatedKey: Omit<ApiKey, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditApiKeyDialog({ apiKey, organizations, environments, onOpenChange, onApiKeyUpdated }: EditApiKeyDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
+  const { toast } = useToast();
   
-  const findOrgId = (name: string) => organizations.find(o => o.name === name)?.id;
-  const findEnvId = (name: string) => environments.find(e => e.name === name)?.id;
-
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
-      environmentId: findEnvId(apiKey.environment) || "",
-      organizationId: findOrgId(apiKey.organization) || "",
+      environmentId: apiKey.environmentId,
+      organizationId: apiKey.organizationId,
       key: apiKey.key,
     },
   });
@@ -69,11 +70,11 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
 
   useEffect(() => {
     form.reset({
-      environmentId: findEnvId(apiKey.environment) || "",
-      organizationId: findOrgId(apiKey.organization) || "",
+      environmentId: apiKey.environmentId,
+      organizationId: apiKey.organizationId,
       key: apiKey.key,
     });
-  }, [apiKey, form, organizations, environments]);
+  }, [apiKey, form]);
 
   useEffect(() => {
     if (selectedEnvironmentId) {
@@ -92,9 +93,25 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: ApiKeyFormValues) => {
-    onApiKeyUpdated({ id: apiKey.id, ...values });
-    onOpenChange(false);
+  const onSubmit = async (values: ApiKeyFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await onApiKeyUpdated({ id: apiKey.id, ...values });
+      toast({
+        title: "Success!",
+        description: "API Key has been updated.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update API Key.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -129,6 +146,7 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -157,7 +175,7 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedEnvironmentId}
+                  disabled={!selectedEnvironmentId || isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -183,10 +201,12 @@ export default function EditApiKeyDialog({ apiKey, organizations, environments, 
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

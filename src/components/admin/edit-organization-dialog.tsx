@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -29,7 +30,8 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Environment, type Organization } from "@/lib/placeholder-data";
+import { useToast } from "@/hooks/use-toast";
+import type { Environment, Organization } from "@/lib/placeholder-data";
 import { PlusCircle, X } from "lucide-react";
 
 const organizationSchema = z.object({
@@ -50,10 +52,13 @@ interface EditOrganizationDialogProps {
   organization: Organization;
   environments: Environment[];
   onOpenChange: (open: boolean) => void;
-  onOrganizationUpdated: (updatedOrg: Omit<Organization, 'createdAt'>) => void;
+  onOrganizationUpdated: (updatedOrg: Omit<Organization, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditOrganizationDialog({ organization, environments, onOpenChange, onOrganizationUpdated }: EditOrganizationDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof organizationSchema>>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -76,9 +81,25 @@ export default function EditOrganizationDialog({ organization, environments, onO
     name: "studyIdentifiers",
   });
 
-  const onSubmit = (values: z.infer<typeof organizationSchema>) => {
-    onOrganizationUpdated({ id: organization.id, ...values });
-    onOpenChange(false);
+  const onSubmit = async (values: z.infer<typeof organizationSchema>) => {
+    setIsSubmitting(true);
+    try {
+      await onOrganizationUpdated({ id: organization.id, ...values });
+      toast({
+        title: "Success!",
+        description: `Organization "${values.name}" has been updated.`,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update organization.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,7 +120,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                 <FormItem>
                   <FormLabel>Organization Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Acme Inc." {...field} />
+                    <Input placeholder="Acme Inc." {...field} disabled={isSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -114,6 +135,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    disabled={isSubmitting}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -155,7 +177,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                       <FormItem>
                         <FormLabel>Key {index + 1}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., MRN" {...field} />
+                          <Input placeholder="e.g., MRN" {...field} disabled={isSubmitting} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -171,6 +193,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                           <Input
                             placeholder="e.g., medical_record_num"
                             {...field}
+                            disabled={isSubmitting}
                           />
                         </FormControl>
                         <FormMessage />
@@ -183,6 +206,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                     size="icon"
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => remove(index)}
+                    disabled={isSubmitting}
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Remove identifier</span>
@@ -198,6 +222,7 @@ export default function EditOrganizationDialog({ organization, environments, onO
                 size="sm"
                 className="mt-2"
                 onClick={() => append({ key: "", value: "" })}
+                disabled={isSubmitting || fields.length >= 4}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Identifier
@@ -206,10 +231,12 @@ export default function EditOrganizationDialog({ organization, environments, onO
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

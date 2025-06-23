@@ -20,7 +20,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setIsAuthenticated, users } = useAppData();
+  const {
+    setIsAuthenticated,
+    users,
+    connectionStatus,
+    connectionError,
+    firebaseConfigDetails,
+  } = useAppData();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -41,6 +47,9 @@ export default function LoginPage() {
     }
   };
 
+  const isConnecting = connectionStatus === 'connecting';
+  const hasConnectionError = connectionStatus === 'error';
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -60,6 +69,31 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {hasConnectionError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Connection Error</AlertTitle>
+                  <AlertDescription>{connectionError}</AlertDescription>
+                </Alert>
+              )}
+              {isConnecting && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4 animate-spin" />
+                  <AlertTitle>Connecting...</AlertTitle>
+                  <AlertDescription>
+                    <p>Attempting to connect to the database. Please wait.</p>
+                    {firebaseConfigDetails.projectId && (
+                        <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono break-all">
+                            <p>Project ID: {firebaseConfigDetails.projectId}</p>
+                            <p>Auth Domain: {firebaseConfigDetails.authDomain}</p>
+                            <p>Storage Bucket: {firebaseConfigDetails.storageBucket}</p>
+                            <p>Messaging Sender ID: {firebaseConfigDetails.messagingSenderId}</p>
+                            <p>App ID: {firebaseConfigDetails.appId}</p>
+                        </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -76,6 +110,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isConnecting || hasConnectionError}
                 />
               </div>
               <div className="space-y-2">
@@ -87,19 +122,17 @@ export default function LoginPage() {
                   placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isConnecting || hasConnectionError}
                 />
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={isConnecting || hasConnectionError}>
+                {isConnecting ? 'Connecting...' : 'Login'}
               </Button>
             </CardFooter>
           </form>
         </Card>
-         <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Hint: Use admin@radpair.com / 12345</p>
-        </div>
       </div>
     </div>
   );

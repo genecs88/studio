@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,7 +29,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Organization, type OrgPath, type Environment } from "@/lib/placeholder-data";
+import { useToast } from "@/hooks/use-toast";
+import type { Organization, OrgPath, Environment } from "@/lib/placeholder-data";
 
 const orgPathSchema = z.object({
   environmentId: z.string().min(1, "Environment is required"),
@@ -43,11 +45,13 @@ interface EditOrgPathDialogProps {
   organizations: Organization[];
   environments: Environment[];
   onOpenChange: (open: boolean) => void;
-  onOrgPathUpdated: (updatedOrgPath: Omit<OrgPath, 'createdAt'>) => void;
+  onOrgPathUpdated: (updatedOrgPath: Omit<OrgPath, 'createdAt'>) => Promise<void>;
 }
 
 export default function EditOrgPathDialog({ orgPath, organizations, environments, onOpenChange, onOrgPathUpdated }: EditOrgPathDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
+  const { toast } = useToast();
   
   const initialOrg = organizations.find(o => o.id === orgPath.organizationId);
   const initialEnvId = initialOrg ? initialOrg.environmentId : "";
@@ -90,9 +94,25 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: OrgPathFormValues) => {
-    onOrgPathUpdated({ id: orgPath.id, organizationId: values.organizationId, path: values.path });
-    onOpenChange(false);
+  const onSubmit = async (values: OrgPathFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await onOrgPathUpdated({ id: orgPath.id, organizationId: values.organizationId, path: values.path });
+      toast({
+        title: "Success!",
+        description: "Org path has been updated.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not update the org path.";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -114,6 +134,7 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -142,7 +163,7 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedEnvironmentId}
+                  disabled={!selectedEnvironmentId || isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -178,6 +199,7 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
                   <Textarea
                     placeholder="Enter comma-separated data, e.g., dept,region,group"
                     {...field}
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <FormMessage />
@@ -186,10 +208,12 @@ export default function EditOrgPathDialog({ orgPath, organizations, environments
           />
 
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

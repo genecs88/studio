@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,6 +30,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import {
   type Environment,
   type Organization,
@@ -41,12 +43,15 @@ const apiKeySchema = z.object({
 });
 
 interface AddApiKeyDialogProps {
-    onApiKeyAdded: (newKey: { organizationId: string; environmentId: string; key: string }) => void;
+    onApiKeyAdded: (newKey: { organizationId: string; environmentId: string; key: string }) => Promise<void>;
     organizations: Organization[];
     environments: Environment[];
+    closeDialog: () => void;
 }
 
-export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environments }: AddApiKeyDialogProps) {
+export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environments, closeDialog }: AddApiKeyDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
@@ -74,10 +79,27 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
     }
   }, [selectedEnvironmentId, form, organizations]);
 
-  const onSubmit = (values: z.infer<typeof apiKeySchema>) => {
-    onApiKeyAdded(values);
-    form.reset();
-    setFilteredOrganizations([]);
+  const onSubmit = async (values: z.infer<typeof apiKeySchema>) => {
+    setIsSubmitting(true);
+    try {
+      await onApiKeyAdded(values);
+      toast({
+        title: "Success!",
+        description: "API Key has been added.",
+      });
+      form.reset();
+      setFilteredOrganizations([]);
+      closeDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Error Adding API Key",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,6 +121,7 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -127,7 +150,7 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedEnvironmentId}
+                  disabled={!selectedEnvironmentId || isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -160,7 +183,7 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
               <FormItem>
                 <FormLabel>API Key</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter API Key" {...field} />
+                  <Input placeholder="Enter API Key" {...field} disabled={isSubmitting} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -169,11 +192,13 @@ export default function AddApiKeyDialog({ onApiKeyAdded, organizations, environm
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add Key</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Key"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

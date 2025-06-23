@@ -21,13 +21,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutGrid,
-  Settings,
   Wrench,
   Search,
   ArrowRightLeft,
   XCircle,
   FilePenLine,
   LogOut,
+  Plug,
 } from "lucide-react";
 import { AppDataProvider, useAppData } from '@/context/app-data-context';
 import {
@@ -37,17 +37,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, setIsAuthenticated } = useAppData();
+  const { isAuthenticated, isAuthChecked, setIsAuthenticated, connectionStatus, connectionError, firebaseConfigDetails } = useAppData();
 
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/login') {
+    if (isAuthChecked && !isAuthenticated && pathname !== '/login') {
       router.push('/login');
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthChecked, isAuthenticated, pathname, router]);
 
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -64,6 +66,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/update-report') return 'Update Report Status';
     return 'Tech Support Tools';
   };
+
+  // While auth state is being checked, render nothing to prevent a flash of incorrect UI.
+  if (!isAuthChecked) {
+    return null;
+  }
 
   // Render only children for the login page, or if the user is not yet authenticated
   // to prevent the main layout from flashing before the redirect happens.
@@ -148,12 +155,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Settings />
-                  Settings
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -161,7 +162,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center justify-start gap-3 p-2 w-full h-auto text-left">
                     <Avatar>
-                      <AvatarImage src="https://placehold.co/40x40.png" alt="@user" />
+                      <AvatarImage src="https://placehold.co/40x40.png" alt="@user" data-ai-hint="avatar" />
                       <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
@@ -187,7 +188,38 @@ function AppContent({ children }: { children: React.ReactNode }) {
               <SidebarTrigger />
             </div>
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className={cn("h-2.5 w-2.5 rounded-full",
+                        connectionStatus === 'connected' && 'bg-green-500',
+                        connectionStatus === 'connecting' && 'bg-yellow-500 animate-pulse',
+                        connectionStatus === 'error' && 'bg-red-500'
+                      )} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div>
+                        <p>
+                          {connectionStatus === 'connected' && 'Connected to Firestore'}
+                          {connectionStatus === 'connecting' && 'Connecting to Firestore...'}
+                          {connectionStatus === 'error' && `Connection failed: ${connectionError}`}
+                        </p>
+                        {(connectionStatus === 'connected' || connectionStatus === 'connecting') && firebaseConfigDetails.projectId && (
+                          <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground font-mono break-all">
+                              <p>Project ID: {firebaseConfigDetails.projectId}</p>
+                              <p>Auth Domain: {firebaseConfigDetails.authDomain}</p>
+                              <p>Storage Bucket: {firebaseConfigDetails.storageBucket}</p>
+                              <p>Messaging Sender ID: {firebaseConfigDetails.messagingSenderId}</p>
+                              <p>App ID: {firebaseConfigDetails.appId}</p>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <span className="text-sm text-muted-foreground">Welcome, Admin!</span>
+              </div>
             </div>
           </header>
           <main className="p-4 md:p-6">{children}</main>
@@ -205,7 +237,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="font-body antialiased" suppressHydrationWarning={true}>
+      <body className="font-body antialiased">
         <AppDataProvider>
           <AppContent>{children}</AppContent>
           <Toaster />

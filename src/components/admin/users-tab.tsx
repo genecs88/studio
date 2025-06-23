@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -26,7 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type User } from "@/lib/placeholder-data";
+import type { User } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddUserDialog from "./add-user-dialog";
 import EditUserDialog from "./edit-user-dialog";
@@ -40,13 +41,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface UsersTabProps {
   users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
 
-export default function UsersTab({ users, setUsers }: UsersTabProps) {
+export default function UsersTab({ users }: UsersTabProps) {
+  const { addUser, updateUser, deleteUser, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,29 +64,22 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedUser) {
-      setUsers(users.filter((user) => user.id !== selectedUser.id));
+      await deleteUser(selectedUser.id);
       setDeleteDialogOpen(false);
       setSelectedUser(null);
     }
   };
-
-  const handleAddUser = (newUserData: Omit<User, 'id' | 'createdAt'>) => {
-    const newUser: User = {
-      id: `user_${Date.now()}`,
-      ...newUserData,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setUsers((prevUsers) => [...prevUsers, newUser]);
-    setAddDialogOpen(false);
-  };
-
-  const handleUserUpdated = (updatedUser: User) => {
-    setUsers((users) =>
-      users.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-    );
-  };
+  
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+        <PlusCircle className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add User
+        </span>
+    </Button>
+  );
 
   return (
     <>
@@ -97,14 +92,20 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add User
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
-              <AddUserDialog onUserAdded={handleAddUser} />
+              <AddUserDialog onUserAdded={addUser} closeDialog={() => setAddDialogOpen(false)} />
             </Dialog>
           </div>
         </CardHeader>
@@ -163,7 +164,7 @@ export default function UsersTab({ users, setUsers }: UsersTabProps) {
           <EditUserDialog
             user={selectedUser}
             onOpenChange={setEditDialogOpen}
-            onUserUpdated={handleUserUpdated}
+            onUserUpdated={updateUser}
           />
         </Dialog>
       )}

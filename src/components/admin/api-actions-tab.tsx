@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppData } from "@/context/app-data-context";
 import {
   Card,
   CardContent,
@@ -27,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { type ApiAction, type Environment } from "@/lib/placeholder-data";
+import type { ApiAction, Environment } from "@/lib/placeholder-data";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import AddApiActionDialog from "./add-api-action-dialog";
 import EditApiActionDialog from "./edit-api-action-dialog";
@@ -41,14 +42,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface ApiActionsTabProps {
   apiActions: ApiAction[];
-  setApiActions: React.Dispatch<React.SetStateAction<ApiAction[]>>;
   environments: Environment[];
 }
 
-export default function ApiActionsTab({ apiActions, setApiActions, environments }: ApiActionsTabProps) {
+export default function ApiActionsTab({ apiActions, environments }: ApiActionsTabProps) {
+  const { addApiAction, updateApiAction, deleteApiAction, isDbInitialized } = useAppData();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -64,39 +66,27 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments 
     setDeleteDialogOpen(true);
   };
   
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedAction) {
-      setApiActions(apiActions.filter(action => action.id !== selectedAction.id));
+      await deleteApiAction(selectedAction.id);
       setDeleteDialogOpen(false);
       setSelectedAction(null);
     }
   }
 
-  const handleAddApiAction = (newActionData: { key: string; value: string; environmentId: string }) => {
-    const newAction: ApiAction = {
-      id: `action_${Date.now()}`,
-      ...newActionData,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setApiActions(prevActions => [...prevActions, newAction]);
-    setAddDialogOpen(false);
-  };
-
-  const onApiActionUpdated = (updatedApiAction: ApiAction) => {
-      setApiActions(actions => actions.map(action => action.id === updatedApiAction.id ? updatedApiAction : action));
-  };
-  
-  const handleApiActionUpdated = (updatedActionData: Omit<ApiAction, 'createdAt'>) => {
-    const originalAction = apiActions.find(a => a.id === updatedActionData.id);
-    if(originalAction) {
-      onApiActionUpdated({ ...updatedActionData, createdAt: originalAction.createdAt });
-    }
-  };
-
   const getEnvironmentName = (environmentId: string) => {
     const env = environments.find((e) => e.id === environmentId);
     return env ? env.name : "Unknown";
   };
+
+  const AddButton = (
+    <Button size="sm" className="gap-1" disabled={!isDbInitialized}>
+        <PlusCircle className="h-3.5 w-3.5" />
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+        Add API Action
+        </span>
+    </Button>
+  );
 
   return (
     <>
@@ -111,14 +101,24 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments 
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add API Action
-                  </span>
-                </Button>
+                {isDbInitialized ? (
+                    AddButton
+                ) : (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>{AddButton}</TooltipTrigger>
+                            <TooltipContent>
+                                <p>Waiting for DB to initialize...</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
               </DialogTrigger>
-              <AddApiActionDialog onApiActionAdded={handleAddApiAction} environments={environments} />
+              <AddApiActionDialog 
+                onApiActionAdded={addApiAction} 
+                environments={environments} 
+                closeDialog={() => setAddDialogOpen(false)}
+              />
             </Dialog>
           </div>
         </CardHeader>
@@ -180,7 +180,7 @@ export default function ApiActionsTab({ apiActions, setApiActions, environments 
                 apiAction={selectedAction} 
                 onOpenChange={setEditDialogOpen}
                 environments={environments} 
-                onApiActionUpdated={handleApiActionUpdated}
+                onApiActionUpdated={updateApiAction}
             />
         </Dialog>
       )}
