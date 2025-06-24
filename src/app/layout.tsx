@@ -28,6 +28,7 @@ import {
   FilePenLine,
   LogOut,
   Plug,
+  DatabaseZap,
 } from "lucide-react";
 import { AppDataProvider, useAppData } from '@/context/app-data-context';
 import {
@@ -64,6 +65,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/cancel-report') return 'Cancel Report';
     if (pathname === '/update-report') return 'Update Report Status';
+    if (pathname === '/datadog-query') return 'Datadog Query';
     return 'Tech Support Tools';
   };
 
@@ -152,6 +154,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   <Link href="/update-report">
                     <FilePenLine />
                     Update Report Status
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/datadog-query'}>
+                  <Link href="/datadog-query">
+                    <DatabaseZap />
+                    Datadog Query
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
