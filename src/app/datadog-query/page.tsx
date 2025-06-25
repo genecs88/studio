@@ -69,18 +69,29 @@ export default function DatadogQueryPage() {
 
             if (result.data?.data && Array.isArray(result.data.data)) {
                 for (const event of result.data.data) {
-                    if (event.attributes?.message) {
-                        try {
-                            const messageContent = JSON.parse(event.attributes.message);
-                            if (messageContent?.identifiers && Array.isArray(messageContent.identifiers)) {
-                                const identifiersText = messageContent.identifiers
-                                    .map((id: any) => `${id.key}: ${id.value}`)
-                                    .join('\n');
-                                setExtractedIdentifiers(identifiersText);
-                                break; // Stop after finding the first one
+                     if (event.attributes?.message && typeof event.attributes.message === 'string') {
+                        const message = event.attributes.message;
+                        const startIndex = message.indexOf('{');
+                        const endIndex = message.lastIndexOf('}');
+                        
+                        if (startIndex !== -1 && endIndex > startIndex) {
+                            const jsonString = message.substring(startIndex, endIndex + 1);
+                            try {
+                                const messageContent = JSON.parse(jsonString);
+                                if (messageContent?.identifiers && Array.isArray(messageContent.identifiers) && messageContent.identifiers.length > 0) {
+                                    const identifiersText = messageContent.identifiers
+                                        .map((id: any) => (id.key && id.value ? `${id.key}: ${id.value}` : null))
+                                        .filter(Boolean)
+                                        .join('\n');
+
+                                    if (identifiersText) {
+                                        setExtractedIdentifiers(identifiersText);
+                                        break; // Found it, exit the loop
+                                    }
+                                }
+                            } catch (e) {
+                                // The extracted substring was not valid JSON. Continue to the next log event.
                             }
-                        } catch (e) {
-                            // Not a JSON message or doesn't have the right structure. Continue to next event.
                         }
                     }
                 }
