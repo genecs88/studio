@@ -146,6 +146,12 @@ export default function DatadogQueryPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <div className="w-full p-2 mt-2 rounded-md bg-muted">
+                <p className="text-sm font-mono text-muted-foreground break-all">
+                    POST https://api.datadoghq.com/api/v2/logs/events/search
+                </p>
+            </div>
         </div>
     );
 }
