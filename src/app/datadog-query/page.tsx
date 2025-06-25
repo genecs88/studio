@@ -75,22 +75,26 @@ export default function DatadogQueryPage() {
                         const endIndex = message.lastIndexOf('}');
                         
                         if (startIndex !== -1 && endIndex > startIndex) {
-                            const jsonString = message.substring(startIndex, endIndex + 1);
-                            try {
-                                const messageContent = JSON.parse(jsonString);
-                                if (messageContent?.identifiers && Array.isArray(messageContent.identifiers) && messageContent.identifiers.length > 0) {
-                                    const identifiersText = messageContent.identifiers
-                                        .map((id: any) => (id.key && id.value ? `${id.key}: ${id.value}` : null))
-                                        .filter(Boolean)
-                                        .join('\n');
+                            // Extract the object-like string e.g. {'key': 'value'}
+                            let objectString = message.substring(startIndex, endIndex + 1);
+                            
+                            // Convert Python-style dict string to valid JSON string
+                            // by replacing single quotes with double quotes.
+                            const jsonString = objectString.replace(/'/g, '"');
 
-                                    if (identifiersText) {
-                                        setExtractedIdentifiers(identifiersText);
-                                        break; // Found it, exit the loop
-                                    }
+                            try {
+                                const identifiersObject = JSON.parse(jsonString);
+                                const identifiersText = Object.entries(identifiersObject)
+                                    .map(([key, value]) => `${key}: ${value}`)
+                                    .join('\n');
+
+                                if (identifiersText) {
+                                    setExtractedIdentifiers(identifiersText);
+                                    break; // Found the first one, so we can stop.
                                 }
                             } catch (e) {
-                                // The extracted substring was not valid JSON. Continue to the next log event.
+                                // This substring was not valid JSON, or something else went wrong.
+                                // Silently continue to the next log event.
                             }
                         }
                     }
@@ -185,7 +189,7 @@ export default function DatadogQueryPage() {
                     <CardHeader>
                         <CardTitle>Extracted Identifiers</CardTitle>
                         <CardDescription>
-                            Key-value pairs from the 'identifiers' array found in the first relevant log event.
+                            Key-value pairs from the object found in the first relevant log event.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
