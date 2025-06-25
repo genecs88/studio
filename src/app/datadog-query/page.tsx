@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle } from "lucide-react";
 
 export default function DatadogQueryPage() {
@@ -29,6 +30,7 @@ export default function DatadogQueryPage() {
     const [response, setResponse] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
 
     // Set initial date range on client-side to avoid hydration mismatch
     useEffect(() => {
@@ -42,6 +44,7 @@ export default function DatadogQueryPage() {
         setIsLoading(true);
         setError(null);
         setResponse(null);
+        setExtractedIdentifiers("");
 
         const payload = {
             filter: {
@@ -63,6 +66,25 @@ export default function DatadogQueryPage() {
             setResponse(result.details || null);
         } else {
             setResponse(result.data);
+
+            if (result.data?.data && Array.isArray(result.data.data)) {
+                for (const event of result.data.data) {
+                    if (event.attributes?.message) {
+                        try {
+                            const messageContent = JSON.parse(event.attributes.message);
+                            if (messageContent?.identifiers && Array.isArray(messageContent.identifiers)) {
+                                const identifiersText = messageContent.identifiers
+                                    .map((id: any) => `${id.key}: ${id.value}`)
+                                    .join('\n');
+                                setExtractedIdentifiers(identifiersText);
+                                break; // Stop after finding the first one
+                            }
+                        } catch (e) {
+                            // Not a JSON message or doesn't have the right structure. Continue to next event.
+                        }
+                    }
+                }
+            }
         }
         
         setIsLoading(false);
@@ -147,11 +169,24 @@ export default function DatadogQueryPage() {
                 </CardContent>
             </Card>
 
-            <div className="w-full p-2 mt-2 rounded-md bg-muted">
-                <p className="text-sm font-mono text-muted-foreground break-all">
-                    POST https://api.datadoghq.com/api/v2/logs/events/search
-                </p>
-            </div>
+            {extractedIdentifiers && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Extracted Identifiers</CardTitle>
+                        <CardDescription>
+                            Key-value pairs from the 'identifiers' array found in the first relevant log event.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            readOnly
+                            value={extractedIdentifiers}
+                            rows={8}
+                            className="font-mono text-sm"
+                        />
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
