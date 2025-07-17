@@ -78,14 +78,17 @@ export default function DatadogQueryPage() {
                  for (const event of result.finalResponse.data) {
                      if (event.attributes?.message && typeof event.attributes.message === 'string') {
                         const message = event.attributes.message;
-                        if (message.includes("New report request for use")) {
+                        // Correctly search for "user" not "use"
+                        if (message.includes("New report request for user")) {
                             const startIndex = message.indexOf('{');
                             if (startIndex !== -1) {
                                 // Assume payload is the rest of the string
                                 let objectString = message.substring(startIndex);
                                 
                                 try {
-                                    const fullPayload = JSON.parse(objectString);
+                                    // Replace single quotes with double quotes for valid JSON
+                                    const validJsonString = objectString.replace(/'/g, '"');
+                                    const fullPayload = JSON.parse(validJsonString);
                                     
                                     const filteredPayload: { [key: string]: any } = {};
                                     for (const key in fullPayload) {
@@ -224,5 +227,7 @@ export default function DatadogQueryPage() {
         </div>
     );
 }
+
+    
 
     
