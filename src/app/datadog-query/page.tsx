@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { queryDatadog } from "./actions";
 import { JsonViewer } from "@textea/json-viewer";
 import {
@@ -22,8 +22,7 @@ import { AlertCircle } from "lucide-react";
 export default function DatadogQueryPage() {
     const [query, setQuery] = useState("datadog-agent");
     const [indexes, setIndexes] = useState("main");
-    const [from, setFrom] = useState("");
-    const [to, setTo] = useState("");
+    const [daysBack, setDaysBack] = useState(1);
     const [sort, setSort] = useState("timestamp");
     const [limit, setLimit] = useState(5);
 
@@ -31,20 +30,22 @@ export default function DatadogQueryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
-
-    // Set initial date range on client-side to avoid hydration mismatch
-    useEffect(() => {
-        const now = new Date();
-        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-        setTo(now.toISOString());
-        setFrom(oneHourAgo.toISOString());
-    }, []);
+    const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
 
     const handleSearch = async () => {
         setIsLoading(true);
         setError(null);
         setResponse(null);
         setExtractedIdentifiers("");
+
+        const toDate = new Date();
+        const fromDate = new Date();
+        fromDate.setDate(toDate.getDate() - daysBack);
+
+        const to = toDate.toISOString();
+        const from = fromDate.toISOString();
+
+        setSearchTimestamps({ from, to });
 
         const payload = {
             filter: {
@@ -117,8 +118,8 @@ export default function DatadogQueryPage() {
                     <CardTitle>Query Payload</CardTitle>
                     <CardDescription>Enter the details for your Datadog query.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2 lg:col-span-3">
                         <Label htmlFor="query">Filter Query</Label>
                         <Input id="query" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="e.g., service:my-app" />
                     </div>
@@ -128,12 +129,8 @@ export default function DatadogQueryPage() {
                         <p className="text-xs text-muted-foreground">Comma-separated list of indexes.</p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="from">From Timestamp</Label>
-                        <Input id="from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="ISO 8601 format" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="to">To Timestamp</Label>
-                        <Input id="to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="ISO 8601 format" />
+                        <Label htmlFor="daysBack">Days To Search Back</Label>
+                        <Input id="daysBack" type="number" value={daysBack} onChange={(e) => setDaysBack(Number(e.target.value))} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="sort">Sort</Label>
@@ -144,7 +141,13 @@ export default function DatadogQueryPage() {
                         <Input id="limit" type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
                     </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex-col items-start gap-4">
+                    {searchTimestamps && (
+                        <div className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded-md w-full">
+                            <p><strong>From:</strong> {searchTimestamps.from}</p>
+                            <p><strong>To:</strong> {searchTimestamps.to}</p>
+                        </div>
+                    )}
                     <Button onClick={handleSearch} disabled={isLoading}>
                         {isLoading ? 'Searching...' : 'Search'}
                     </Button>
