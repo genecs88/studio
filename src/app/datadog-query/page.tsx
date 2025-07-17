@@ -21,11 +21,9 @@ import { AlertCircle, Search } from "lucide-react";
 
 export default function DatadogQueryPage() {
     const [reportId, setReportId] = useState("");
-    const [indexes, setIndexes] = useState("main");
+    const [env, setEnv] = useState("prod");
     const [daysBack, setDaysBack] = useState(1);
-    const [sort, setSort] = useState("timestamp");
-    const [limit, setLimit] = useState(5);
-
+    
     const [response, setResponse] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -49,18 +47,18 @@ export default function DatadogQueryPage() {
 
         setSearchTimestamps({ from, to });
 
-        const constructedQuery = `Processing normal for report ${reportId}`;
+        const constructedQuery = `env:${env} "Processing normal for report ${reportId}"`;
 
         const payload = {
             filter: {
                 query: constructedQuery,
-                indexes: indexes.split(',').map(i => i.trim()).filter(Boolean),
+                indexes: ['main'],
                 from,
                 to,
             },
-            sort,
+            sort: 'timestamp',
             page: {
-                limit: Number(limit),
+                limit: 5,
             },
         };
         
@@ -87,11 +85,13 @@ export default function DatadogQueryPage() {
                     if (keywordIndex !== -1) {
                         try {
                             const jsonStr = message.substring(keywordIndex + keyword.length).trim();
+                            // This is a more robust way to handle the single-quoted string
                             const validJsonStr = jsonStr.replace(/'/g, '"');
                             identifiersObj = JSON.parse(validJsonStr);
                             break; 
                         } catch (e) {
                             console.error("Failed to parse Identifiers object:", e);
+                            setError("Failed to parse Identifiers JSON from log message. See console for details.");
                             continue;
                         }
                     }
@@ -100,7 +100,8 @@ export default function DatadogQueryPage() {
                 if (identifiersObj) {
                     setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
                 } else {
-                    setExtractedIdentifiers("");
+                    // Set an empty string if identifiers were not found in the second search
+                    setExtractedIdentifiers(""); 
                 }
             }
         }
@@ -117,10 +118,10 @@ export default function DatadogQueryPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Query Payload</CardTitle>
+                    <CardTitle>Query Details</CardTitle>
                     <CardDescription>Enter the details for your Datadog query.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
+                <CardContent className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
                         <Label htmlFor="reportId">Report ID</Label>
                         <Input id="reportId" value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="e.g., 146406" />
@@ -128,6 +129,10 @@ export default function DatadogQueryPage() {
                     <div className="space-y-2">
                         <Label htmlFor="daysBack">Days To Search Back</Label>
                         <Input id="daysBack" type="number" value={daysBack} onChange={(e) => setDaysBack(Number(e.target.value))} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="env">Environment</Label>
+                        <Input id="env" value={env} onChange={(e) => setEnv(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">

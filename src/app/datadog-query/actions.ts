@@ -84,6 +84,7 @@ export async function findIdentifiersByReportId(initialPayload: DatadogPayload) 
         ...initialPayload,
         filter: {
             ...initialPayload.filter,
+            // The initial query already had the env filter, so we just need to search by trace_id now.
             query: `trace_id:${traceId}`,
         },
         page: {
