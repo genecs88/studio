@@ -75,43 +75,62 @@ export default function DatadogQueryPage() {
             setResponse(result.finalResponse);
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
-                let combinedResult: { [key: string]: any } = {};
+                let identifiersObj = {};
+                let orgPathObj = {};
 
-                for (const event of result.finalResponse.data) {
-                    const message = event.attributes?.message;
-                    if (typeof message === 'string') {
-                        // Find and parse "identifiers"
-                        if (message.toLowerCase().includes("identifiers")) {
-                             const match = message.match(/identifiers['"]?:\s*({.+?})/i);
-                            if (match && match[1]) {
-                                try {
-                                    const validJsonString = match[1].replace(/'/g, '"');
-                                    const identifiersData = JSON.parse(validJsonString);
-                                    combinedResult = { ...combinedResult, ...identifiersData };
-                                } catch (e) {
-                                    console.error("Failed to parse identifiers:", e);
-                                }
-                            }
+                const extractJson = (message: string, keyword: string): object | null => {
+                    try {
+                        const keywordIndex = message.indexOf(keyword);
+                        if (keywordIndex === -1) return null;
+                        
+                        const startIndex = message.indexOf('{', keywordIndex);
+                        if (startIndex === -1) return null;
+
+                        let braceCount = 1;
+                        let endIndex = startIndex + 1;
+                        while (endIndex < message.length && braceCount > 0) {
+                            if (message[endIndex] === '{') braceCount++;
+                            if (message[endIndex] === '}') braceCount--;
+                            endIndex++;
                         }
 
-                        // Find and parse "org_path"
-                        if (message.toLowerCase().includes("org_path")) {
-                            const orgPathMatch = message.match(/org_path['"]?\s*:\s*(\[[^\]]+\])/i);
-                            if (orgPathMatch && orgPathMatch[1]) {
-                                try {
-                                    const validJsonString = orgPathMatch[1].replace(/'/g, '"');
-                                    const orgPathData = JSON.parse(validJsonString);
-                                    combinedResult.org_path = orgPathData;
-                                } catch (e) {
-                                    console.error("Failed to parse org_path:", e);
-                                }
-                            }
+                        if (braceCount !== 0) return null; // Mismatched braces
+
+                        const jsonStr = message.substring(startIndex, endIndex);
+                        // Replace single quotes for valid JSON
+                        const validJsonStr = jsonStr.replace(/'/g, '"');
+                        return JSON.parse(validJsonStr);
+                    } catch (e) {
+                        console.error(`Failed to parse object with keyword '${keyword}':`, e);
+                        return null;
+                    }
+                };
+                
+                for (const event of result.finalResponse.data) {
+                    const message = event.attributes?.message;
+                    if (typeof message !== 'string') continue;
+
+                    if (Object.keys(identifiersObj).length === 0) {
+                       const extracted = extractJson(message, "identifiers");
+                       if (extracted) {
+                           identifiersObj = extracted;
+                       }
+                    }
+                    
+                    if (Object.keys(orgPathObj).length === 0) {
+                        const extracted = extractJson(message, "org_path");
+                        if (extracted) {
+                            orgPathObj = extracted;
                         }
                     }
                 }
 
+                const combinedResult = { ...identifiersObj, ...orgPathObj };
+
                 if (Object.keys(combinedResult).length > 0) {
                     setExtractedIdentifiers(JSON.stringify(combinedResult, null, 2));
+                } else {
+                    setExtractedIdentifiers(""); // Clear if nothing was found
                 }
             }
         }
