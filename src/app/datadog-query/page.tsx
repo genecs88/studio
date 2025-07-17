@@ -29,7 +29,7 @@ export default function DatadogQueryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
-    const [parentOrgMessage, setParentOrgMessage] = useState("");
+    const [extractedParentOrg, setExtractedParentOrg] = useState("");
     const [extractedOrgPath, setExtractedOrgPath] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function DatadogQueryPage() {
         setError(null);
         setResponse(null);
         setExtractedIdentifiers("");
-        setParentOrgMessage("");
+        setExtractedParentOrg("");
         setExtractedOrgPath("");
         setFoundTraceId(null);
         setSearchCompleted(false);
@@ -126,11 +126,11 @@ export default function DatadogQueryPage() {
                     }
                 }
                 
-                // Extract parent_org message and org_path from it
+                // Extract parent_org and org_path from the specific log entry
                 for (const event of result.finalResponse.data) {
                     const attributes = event.attributes?.attributes;
                     if (attributes && attributes.parent_org) {
-                        setParentOrgMessage(event.attributes?.message || "Message not available");
+                        setExtractedParentOrg(attributes.parent_org);
                         parentOrgFound = true;
 
                         if (attributes.org_path) {
@@ -146,7 +146,7 @@ export default function DatadogQueryPage() {
                 setExtractedIdentifiers("not found");
             }
             if (!parentOrgFound) {
-                setParentOrgMessage("not found");
+                setExtractedParentOrg("not found");
             }
             if (!orgPathFound) {
                 setExtractedOrgPath("not found");
@@ -254,18 +254,18 @@ export default function DatadogQueryPage() {
                 <>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Extracted Parent Org Message</CardTitle>
+                            <CardTitle>Extracted Parent Org</CardTitle>
                             <CardDescription>
-                                The first log message from the trace containing a "parent_org" attribute.
+                                The value of the "parent_org" key from the first log found in the trace.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Textarea
                                 readOnly
-                                value={parentOrgMessage}
-                                rows={4}
+                                value={extractedParentOrg}
+                                rows={2}
                                 className="font-mono text-sm"
-                                placeholder={isLoading ? "Searching..." : "Parent org message will appear here."}
+                                placeholder={isLoading ? "Searching..." : "Parent org will appear here."}
                             />
                         </CardContent>
                     </Card>
@@ -274,7 +274,7 @@ export default function DatadogQueryPage() {
                         <CardHeader>
                             <CardTitle>Extracted Org Path</CardTitle>
                              <CardDescription>
-                                The "org_path" value from the message above.
+                                The "org_path" value from the same log as the parent org.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -310,3 +310,5 @@ export default function DatadogQueryPage() {
         </div>
     );
 }
+
+    
