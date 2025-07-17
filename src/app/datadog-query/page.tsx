@@ -28,6 +28,7 @@ export default function DatadogQueryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
+    const [extractedOrgPathMessage, setExtractedOrgPathMessage] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
 
@@ -36,6 +37,7 @@ export default function DatadogQueryPage() {
         setError(null);
         setResponse(null);
         setExtractedIdentifiers("");
+        setExtractedOrgPathMessage("");
         setFoundTraceId(null);
 
         const toDate = new Date();
@@ -74,7 +76,9 @@ export default function DatadogQueryPage() {
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 let identifiersObj = null;
+                let orgPathMsg = "";
 
+                // Extract Identifiers
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
                     if (typeof message !== 'string') continue;
@@ -85,7 +89,6 @@ export default function DatadogQueryPage() {
                     if (keywordIndex !== -1) {
                         try {
                             const jsonStr = message.substring(keywordIndex + keyword.length).trim();
-                            // This is a more robust way to handle the single-quoted string
                             const validJsonStr = jsonStr.replace(/'/g, '"');
                             identifiersObj = JSON.parse(validJsonStr);
                             break; 
@@ -100,9 +103,18 @@ export default function DatadogQueryPage() {
                 if (identifiersObj) {
                     setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
                 } else {
-                    // Set an empty string if identifiers were not found in the second search
                     setExtractedIdentifiers(""); 
                 }
+
+                // Extract org_path message
+                for (const event of result.finalResponse.data) {
+                    const message = event.attributes?.message;
+                    if (typeof message === 'string' && message.includes('"org_path"')) {
+                        orgPathMsg = message;
+                        break;
+                    }
+                }
+                setExtractedOrgPathMessage(orgPathMsg);
             }
         }
         
@@ -190,6 +202,25 @@ export default function DatadogQueryPage() {
                     )}
                 </CardContent>
             </Card>
+            
+            {extractedOrgPathMessage && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Extracted Org Path Message</CardTitle>
+                        <CardDescription>
+                            The first log message from the trace containing "org_path".
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            readOnly
+                            value={extractedOrgPathMessage}
+                            rows={4}
+                            className="font-mono text-sm"
+                        />
+                    </CardContent>
+                </Card>
+            )}
 
             {extractedIdentifiers && (
                 <Card>
