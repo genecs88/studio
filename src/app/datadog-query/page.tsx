@@ -122,34 +122,27 @@ export default function DatadogQueryPage() {
                         } catch (e) {
                             console.error("Failed to parse Identifiers object:", e);
                             setError("Failed to parse Identifiers JSON from log message. See console for details.");
-                            continue;
                         }
                     }
                 }
                 
                 // Extract parent_org message and org_path from it
                 for (const event of result.finalResponse.data) {
-                    const message = event.attributes?.message;
-                    if (typeof message === 'string' && message.includes('"parent_org"')) {
-                        setParentOrgMessage(message);
+                    const attributes = event.attributes?.attributes;
+                    if (attributes && attributes.parent_org) {
+                        setParentOrgMessage(event.attributes?.message || "Message not available");
                         parentOrgFound = true;
-                        try {
-                            const jsonMatch = message.match(/{.*}/);
-                            if (jsonMatch) {
-                                const jsonObj = JSON.parse(jsonMatch[0]);
-                                if (jsonObj.org_path) {
-                                    setExtractedOrgPath(JSON.stringify(jsonObj.org_path, null, 2));
-                                    orgPathFound = true;
-                                }
-                            }
-                        } catch (e) {
-                             console.error("Failed to parse org_path from parent_org message:", e);
+
+                        if (attributes.org_path) {
+                            setExtractedOrgPath(JSON.stringify(attributes.org_path, null, 2));
+                            orgPathFound = true;
                         }
-                        break; 
+                        break;
                     }
                 }
             }
-             if (!identifiersFound) {
+
+            if (!identifiersFound) {
                 setExtractedIdentifiers("not found");
             }
             if (!parentOrgFound) {
@@ -242,7 +235,7 @@ export default function DatadogQueryPage() {
                             <p>Loading...</p>
                         </div>
                     ) : response ? (
-                        <div className="p-2 rounded-md bg-secondary text-secondary-foreground overflow-auto max-h-[400px] text-sm font-mono">
+                         <div className="p-2 rounded-md bg-secondary text-secondary-foreground overflow-auto max-h-[400px] text-sm font-mono">
                             <JsonViewer 
                                 value={response} 
                                 theme="dark"
@@ -263,7 +256,7 @@ export default function DatadogQueryPage() {
                         <CardHeader>
                             <CardTitle>Extracted Parent Org Message</CardTitle>
                             <CardDescription>
-                                The first log message from the trace containing "parent_org".
+                                The first log message from the trace containing a "parent_org" attribute.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
