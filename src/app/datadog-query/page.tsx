@@ -32,6 +32,7 @@ export default function DatadogQueryPage() {
     const [extractedOrgPath, setExtractedOrgPath] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
+    const [searchCompleted, setSearchCompleted] = useState(false);
 
     const handleSearch = async () => {
         setIsLoading(true);
@@ -41,6 +42,7 @@ export default function DatadogQueryPage() {
         setParentOrgMessage("");
         setExtractedOrgPath("");
         setFoundTraceId(null);
+        setSearchCompleted(false);
 
         const toDate = new Date();
         const fromDate = new Date();
@@ -76,9 +78,11 @@ export default function DatadogQueryPage() {
         } else {
             setResponse(result.finalResponse);
 
-            if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
-                let identifiersObj = null;
+            let identifiersFound = false;
+            let parentOrgFound = false;
+            let orgPathFound = false;
 
+            if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 // Extract Identifiers
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
@@ -91,7 +95,9 @@ export default function DatadogQueryPage() {
                         try {
                             const jsonStr = message.substring(keywordIndex + keyword.length).trim();
                             const validJsonStr = jsonStr.replace(/'/g, '"');
-                            identifiersObj = JSON.parse(validJsonStr);
+                            const identifiersObj = JSON.parse(validJsonStr);
+                            setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
+                            identifiersFound = true;
                             break; 
                         } catch (e) {
                             console.error("Failed to parse Identifiers object:", e);
@@ -101,36 +107,41 @@ export default function DatadogQueryPage() {
                     }
                 }
                 
-                if (identifiersObj) {
-                    setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
-                } else {
-                    setExtractedIdentifiers(""); 
-                }
-
                 // Extract parent_org message and org_path from it
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
                     if (typeof message === 'string' && message.includes('"parent_org"')) {
                         setParentOrgMessage(message);
+                        parentOrgFound = true;
                         try {
-                            // Find the JSON-like part of the message
                             const jsonMatch = message.match(/{.*}/);
                             if (jsonMatch) {
                                 const jsonObj = JSON.parse(jsonMatch[0]);
                                 if (jsonObj.org_path) {
                                     setExtractedOrgPath(JSON.stringify(jsonObj.org_path, null, 2));
+                                    orgPathFound = true;
                                 }
                             }
                         } catch (e) {
                              console.error("Failed to parse org_path from parent_org message:", e);
                         }
-                        break; // Found the message, stop searching
+                        break; 
                     }
                 }
+            }
+             if (!identifiersFound) {
+                setExtractedIdentifiers("not found");
+            }
+            if (!parentOrgFound) {
+                setParentOrgMessage("not found");
+            }
+            if (!orgPathFound) {
+                setExtractedOrgPath("not found");
             }
         }
         
         setIsLoading(false);
+        setSearchCompleted(true);
     };
 
     return (
@@ -215,61 +226,62 @@ export default function DatadogQueryPage() {
                 </CardContent>
             </Card>
             
-            {parentOrgMessage && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Extracted Parent Org Message</CardTitle>
-                        <CardDescription>
-                            The first log message from the trace containing "parent_org".
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Textarea
-                            readOnly
-                            value={parentOrgMessage}
-                            rows={4}
-                            className="font-mono text-sm"
-                        />
-                    </CardContent>
-                </Card>
-            )}
+            {searchCompleted && (
+                <>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Parent Org Message</CardTitle>
+                            <CardDescription>
+                                The first log message from the trace containing "parent_org".
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={parentOrgMessage}
+                                rows={4}
+                                className="font-mono text-sm"
+                                placeholder={isLoading ? "Searching..." : "Parent org message will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
 
-            {extractedOrgPath && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Extracted Org Path</CardTitle>
-                         <CardDescription>
-                            The "org_path" value from the message above.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Textarea
-                            readOnly
-                            value={extractedOrgPath}
-                            rows={4}
-                            className="font-mono text-sm"
-                        />
-                    </CardContent>
-                </Card>
-            )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Org Path</CardTitle>
+                             <CardDescription>
+                                The "org_path" value from the message above.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={extractedOrgPath}
+                                rows={4}
+                                className="font-mono text-sm"
+                                placeholder={isLoading ? "Searching..." : "Org path will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
 
-            {extractedIdentifiers && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Extracted Report Payload</CardTitle>
-                        <CardDescription>
-                            Key-value pairs from the first log message containing "Identifiers:".
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Textarea
-                            readOnly
-                            value={extractedIdentifiers}
-                            rows={10}
-                            className="font-mono text-sm"
-                        />
-                    </CardContent>
-                </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Report Payload</CardTitle>
+                            <CardDescription>
+                                Key-value pairs from the first log message containing "Identifiers:".
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={extractedIdentifiers}
+                                rows={10}
+                                className="font-mono text-sm"
+                                placeholder={isLoading ? "Searching..." : "Payload will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
+                </>
             )}
         </div>
     );
