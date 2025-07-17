@@ -75,45 +75,50 @@ export default function DatadogQueryPage() {
             setResponse(result.finalResponse);
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
-                 let combinedResult: { [key: string]: any } = {};
-                 let identifiersFound = false;
-                 let orgPathFound = false;
+                let combinedResult: { [key: string]: any } = {};
+                let identifiersData: { [key: string]: any } | null = null;
+                let orgPathData: string[] | null = null;
 
-                 for (const event of result.finalResponse.data) {
-                     if (event.attributes?.message && typeof event.attributes.message === 'string') {
+                for (const event of result.finalResponse.data) {
+                    if (event.attributes?.message && typeof event.attributes.message === 'string') {
                         const message = event.attributes.message;
-                        
+
                         // Find and parse "identifiers"
-                        if (!identifiersFound && message.includes("identifiers")) {
-                            const identifiersMatch = message.match(/identifiers: ({.*})/);
-                            if (identifiersMatch && identifiersMatch[1]) {
+                        if (!identifiersData && message.toLowerCase().includes("identifiers")) {
+                            const match = message.match(/identifiers:\s*({[^}]+})/i);
+                            if (match && match[1]) {
                                 try {
-                                    const validJsonString = identifiersMatch[1].replace(/'/g, '"');
-                                    const parsedIdentifiers = JSON.parse(validJsonString);
-                                    combinedResult = { ...combinedResult, ...parsedIdentifiers };
-                                    identifiersFound = true;
+                                    const validJsonString = match[1].replace(/'/g, '"');
+                                    identifiersData = JSON.parse(validJsonString);
                                 } catch (e) {
-                                    // Could not parse identifiers
+                                    // Failed to parse, continue loop
                                 }
                             }
                         }
 
                         // Find and parse "org_path"
-                        if (!orgPathFound && message.includes("org_path")) {
-                            const orgPathMatch = message.match(/org_path: (\[.*?\])/);
-                            if (orgPathMatch && orgPathMatch[1]) {
+                        if (!orgPathData && message.toLowerCase().includes("org_path")) {
+                            const match = message.match(/org_path:\s*(\[[^\]]+\])/i);
+                             if (match && match[1]) {
                                 try {
-                                    const validJsonString = orgPathMatch[1].replace(/'/g, '"');
-                                    const parsedOrgPath = JSON.parse(validJsonString);
-                                    combinedResult.org_path = parsedOrgPath;
-                                    orgPathFound = true;
+                                    const validJsonString = match[1].replace(/'/g, '"');
+                                    orgPathData = JSON.parse(validJsonString);
                                 } catch (e) {
-                                    // Could not parse org_path
+                                    // Failed to parse, continue loop
                                 }
                             }
                         }
                     }
-                    if(identifiersFound && orgPathFound) break;
+                    if (identifiersData && orgPathData) break;
+                }
+                
+                if (identifiersData || orgPathData) {
+                    if(identifiersData) {
+                        combinedResult = { ...combinedResult, ...identifiersData };
+                    }
+                    if(orgPathData) {
+                        combinedResult.org_path = orgPathData;
+                    }
                 }
 
                 if (Object.keys(combinedResult).length > 0) {
