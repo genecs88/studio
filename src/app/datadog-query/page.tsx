@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle } from "lucide-react";
 
 export default function DatadogQueryPage() {
-    const [query, setQuery] = useState("datadog-agent");
+    const [reportId, setReportId] = useState("");
     const [indexes, setIndexes] = useState("main");
     const [daysBack, setDaysBack] = useState(1);
     const [sort, setSort] = useState("timestamp");
@@ -47,9 +47,11 @@ export default function DatadogQueryPage() {
 
         setSearchTimestamps({ from, to });
 
+        const constructedQuery = `Processing normal for report ${reportId}`;
+
         const payload = {
             filter: {
-                query,
+                query: constructedQuery,
                 indexes: indexes.split(',').map(i => i.trim()).filter(Boolean),
                 from,
                 to,
@@ -120,8 +122,8 @@ export default function DatadogQueryPage() {
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-2 lg:col-span-3">
-                        <Label htmlFor="query">Filter Query</Label>
-                        <Input id="query" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="e.g., service:my-app" />
+                        <Label htmlFor="reportId">Report ID</Label>
+                        <Input id="reportId" value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="e.g., 146406" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="indexes">Indexes</Label>
