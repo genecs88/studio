@@ -28,7 +28,8 @@ export default function DatadogQueryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
-    const [extractedOrgPathMessage, setExtractedOrgPathMessage] = useState("");
+    const [parentOrgMessage, setParentOrgMessage] = useState("");
+    const [extractedOrgPath, setExtractedOrgPath] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
 
@@ -37,7 +38,8 @@ export default function DatadogQueryPage() {
         setError(null);
         setResponse(null);
         setExtractedIdentifiers("");
-        setExtractedOrgPathMessage("");
+        setParentOrgMessage("");
+        setExtractedOrgPath("");
         setFoundTraceId(null);
 
         const toDate = new Date();
@@ -76,7 +78,6 @@ export default function DatadogQueryPage() {
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 let identifiersObj = null;
-                let orgPathMsg = "";
 
                 // Extract Identifiers
                 for (const event of result.finalResponse.data) {
@@ -106,15 +107,26 @@ export default function DatadogQueryPage() {
                     setExtractedIdentifiers(""); 
                 }
 
-                // Extract org_path message
+                // Extract parent_org message and org_path from it
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
-                    if (typeof message === 'string' && message.includes('"org_path"')) {
-                        orgPathMsg = message;
-                        break;
+                    if (typeof message === 'string' && message.includes('"parent_org"')) {
+                        setParentOrgMessage(message);
+                        try {
+                            // Find the JSON-like part of the message
+                            const jsonMatch = message.match(/{.*}/);
+                            if (jsonMatch) {
+                                const jsonObj = JSON.parse(jsonMatch[0]);
+                                if (jsonObj.org_path) {
+                                    setExtractedOrgPath(JSON.stringify(jsonObj.org_path, null, 2));
+                                }
+                            }
+                        } catch (e) {
+                             console.error("Failed to parse org_path from parent_org message:", e);
+                        }
+                        break; // Found the message, stop searching
                     }
                 }
-                setExtractedOrgPathMessage(orgPathMsg);
             }
         }
         
@@ -203,18 +215,37 @@ export default function DatadogQueryPage() {
                 </CardContent>
             </Card>
             
-            {extractedOrgPathMessage && (
+            {parentOrgMessage && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Extracted Org Path Message</CardTitle>
+                        <CardTitle>Extracted Parent Org Message</CardTitle>
                         <CardDescription>
-                            The first log message from the trace containing "org_path".
+                            The first log message from the trace containing "parent_org".
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Textarea
                             readOnly
-                            value={extractedOrgPathMessage}
+                            value={parentOrgMessage}
+                            rows={4}
+                            className="font-mono text-sm"
+                        />
+                    </CardContent>
+                </Card>
+            )}
+
+            {extractedOrgPath && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Extracted Org Path</CardTitle>
+                         <CardDescription>
+                            The "org_path" value from the message above.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            readOnly
+                            value={extractedOrgPath}
                             rows={4}
                             className="font-mono text-sm"
                         />
