@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { queryDatadog } from "./actions";
+import { findIdentifiersByReportId } from "./actions";
 import { JsonViewer } from "@textea/json-viewer";
 import {
   Card,
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Search } from "lucide-react";
 
 export default function DatadogQueryPage() {
     const [reportId, setReportId] = useState("");
@@ -31,12 +31,14 @@ export default function DatadogQueryPage() {
     const [error, setError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
+    const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
 
     const handleSearch = async () => {
         setIsLoading(true);
         setError(null);
         setResponse(null);
         setExtractedIdentifiers("");
+        setFoundTraceId(null);
 
         const toDate = new Date();
         const fromDate = new Date();
@@ -62,42 +64,43 @@ export default function DatadogQueryPage() {
             },
         };
         
-        const result = await queryDatadog(payload);
+        const result = await findIdentifiersByReportId(payload);
+        
+        setFoundTraceId(result.traceId || null);
 
         if (result.error) {
             setError(result.error + (result.details ? `: ${JSON.stringify(result.details, null, 2)}` : ''));
-            setResponse(result.details || null);
+            setResponse(result.finalResponse || result.initialResponse || result.details || null);
         } else {
-            setResponse(result.data);
+            // The response to display is the final one from the trace_id query
+            setResponse(result.finalResponse);
 
-            if (result.data?.data && Array.isArray(result.data.data)) {
-                for (const event of result.data.data) {
+            if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
+                 for (const event of result.finalResponse.data) {
                      if (event.attributes?.message && typeof event.attributes.message === 'string') {
                         const message = event.attributes.message;
-                        const startIndex = message.indexOf('{');
-                        const endIndex = message.lastIndexOf('}');
-                        
-                        if (startIndex !== -1 && endIndex > startIndex) {
-                            // Extract the object-like string e.g. {'key': 'value'}
-                            let objectString = message.substring(startIndex, endIndex + 1);
+                         // Check for the "Identifiers:" keyword
+                        if (message.includes("Identifiers:")) {
+                            const startIndex = message.indexOf('{');
+                            const endIndex = message.lastIndexOf('}');
                             
-                            // Convert Python-style dict string to valid JSON string
-                            // by replacing single quotes with double quotes.
-                            const jsonString = objectString.replace(/'/g, '"');
+                            if (startIndex !== -1 && endIndex > startIndex) {
+                                let objectString = message.substring(startIndex, endIndex + 1);
+                                const jsonString = objectString.replace(/'/g, '"');
 
-                            try {
-                                const identifiersObject = JSON.parse(jsonString);
-                                const identifiersText = Object.entries(identifiersObject)
-                                    .map(([key, value]) => `${key}: ${value}`)
-                                    .join('\n');
+                                try {
+                                    const identifiersObject = JSON.parse(jsonString);
+                                    const identifiersText = Object.entries(identifiersObject)
+                                        .map(([key, value]) => `${key}: ${value}`)
+                                        .join('\n');
 
-                                if (identifiersText) {
-                                    setExtractedIdentifiers(identifiersText);
-                                    break; // Found the first one, so we can stop.
+                                    if (identifiersText) {
+                                        setExtractedIdentifiers(identifiersText);
+                                        break; 
+                                    }
+                                } catch (e) {
+                                    // Invalid JSON, continue
                                 }
-                            } catch (e) {
-                                // This substring was not valid JSON, or something else went wrong.
-                                // Silently continue to the next log event.
                             }
                         }
                     }
@@ -139,7 +142,7 @@ export default function DatadogQueryPage() {
                         <Input id="sort" value={sort} onChange={(e) => setSort(e.target.value)} placeholder="e.g., timestamp" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="limit">Page Limit</Label>
+                        <Label htmlFor="limit">Page Limit (Initial Query)</Label>
                         <Input id="limit" type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
                     </div>
                 </CardContent>
@@ -155,11 +158,21 @@ export default function DatadogQueryPage() {
                     </Button>
                 </CardFooter>
             </Card>
+            
+             {foundTraceId && (
+                <Alert>
+                    <Search className="h-4 w-4" />
+                    <AlertTitle>Trace ID Found</AlertTitle>
+                    <AlertDescription>
+                        Found trace_id: <span className="font-mono bg-muted px-1 py-0.5 rounded">{foundTraceId}</span>. Now searching logs with this trace ID.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <Card>
                 <CardHeader>
                     <CardTitle>API Response</CardTitle>
-                    <CardDescription>The response from the Datadog API will appear here.</CardDescription>
+                    <CardDescription>The final response from the Datadog API (using the trace_id) will appear here.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      {error && (

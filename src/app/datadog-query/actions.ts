@@ -23,7 +23,7 @@ const datadogPayloadSchema = z.object({
 
 export type DatadogPayload = z.infer<typeof datadogPayloadSchema>;
 
-export async function queryDatadog(payload: DatadogPayload) {
+async function executeDatadogQuery(payload: DatadogPayload) {
     const validation = datadogPayloadSchema.safeParse(payload);
     if (!validation.success) {
         return { error: 'Invalid payload provided.', details: validation.error.flatten() };
@@ -38,6 +38,7 @@ export async function queryDatadog(payload: DatadogPayload) {
                 'DD-APPLICATION-KEY': DATADOG_APP_KEY,
             },
             body: JSON.stringify(validation.data),
+            cache: 'no-store', // Ensure fresh data for each query
         });
 
         const responseData = await response.json();
@@ -50,4 +51,53 @@ export async function queryDatadog(payload: DatadogPayload) {
     } catch (error: any) {
         return { error: `Request failed: ${error.message}` };
     }
+}
+
+
+export async function findIdentifiersByReportId(initialPayload: DatadogPayload) {
+    // Step 1: Find the trace_id using the report ID
+    const initialResult = await executeDatadogQuery(initialPayload);
+
+    if (initialResult.error || !initialResult.data || !initialResult.data.data || initialResult.data.data.length === 0) {
+        return { 
+            ...initialResult,
+            finalResponse: null, 
+            traceId: null, 
+            error: initialResult.error || "No logs found for the given Report ID." 
+        };
+    }
+
+    const firstEvent = initialResult.data.data[0];
+    const traceId = firstEvent?.attributes?.attributes?.trace_id;
+
+    if (!traceId) {
+        return { 
+            ...initialResult,
+            finalResponse: null,
+            traceId: null,
+            error: "Could not find trace_id in the initial log event." 
+        };
+    }
+
+    // Step 2: Use the trace_id to find the log with identifiers
+    const traceQueryPayload: DatadogPayload = {
+        ...initialPayload,
+        filter: {
+            ...initialPayload.filter,
+            query: `trace_id:${traceId}`,
+        },
+        page: {
+            limit: 20 // Increase limit to better find the identifiers log
+        }
+    };
+
+    const finalResult = await executeDatadogQuery(traceQueryPayload);
+
+    return { 
+        initialResponse: initialResult.data,
+        finalResponse: finalResult.data,
+        traceId,
+        error: finalResult.error,
+        details: finalResult.details
+    };
 }
