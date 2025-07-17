@@ -85,26 +85,31 @@ export default function DatadogQueryPage() {
 
                         // Find and parse "identifiers"
                         if (!identifiersData && message.toLowerCase().includes("identifiers")) {
-                            const match = message.match(/identifiers:\s*({[^}]+})/i);
+                             const match = message.match(/identifiers:\s*({[^}]+})/i);
                             if (match && match[1]) {
                                 try {
                                     const validJsonString = match[1].replace(/'/g, '"');
                                     identifiersData = JSON.parse(validJsonString);
                                 } catch (e) {
-                                    // Failed to parse, continue loop
+                                    console.error("Failed to parse identifiers:", e);
                                 }
                             }
                         }
 
                         // Find and parse "org_path"
-                        if (!orgPathData && message.toLowerCase().includes("org_path")) {
-                            const match = message.match(/org_path:\s*(\[[^\]]+\])/i);
-                             if (match && match[1]) {
+                        if (!orgPathData && message.toLowerCase().includes('"org_path"')) {
+                            const orgPathMatch = message.match(/"org_path"\s*:\s*\[([^\]]*)\]/i);
+                            if (orgPathMatch && orgPathMatch[1]) {
                                 try {
-                                    const validJsonString = match[1].replace(/'/g, '"');
+                                    // Extract content, remove newlines, filter empty strings
+                                    const pathContent = orgPathMatch[1].replace(/\n/g, '').trim();
+                                    const paths = pathContent.split('"').filter(s => s.trim() !== '' && s.trim() !== ',');
+                                    
+                                    // Reconstruct as a valid JSON array string
+                                    const validJsonString = `[${paths.map(p => `"${p}"`).join(',')}]`;
                                     orgPathData = JSON.parse(validJsonString);
                                 } catch (e) {
-                                    // Failed to parse, continue loop
+                                     console.error("Failed to parse org_path:", e);
                                 }
                             }
                         }
