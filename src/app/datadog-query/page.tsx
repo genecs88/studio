@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, Search } from "lucide-react";
+import { AlertCircle, Search, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DatadogQueryPage() {
     const [reportId, setReportId] = useState("");
@@ -33,6 +34,25 @@ export default function DatadogQueryPage() {
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
     const [searchCompleted, setSearchCompleted] = useState(false);
+    const { toast } = useToast();
+
+    const handleCopyApiResponse = () => {
+        if (!response) return;
+        try {
+            const jsonString = JSON.stringify(response, null, 2);
+            navigator.clipboard.writeText(jsonString);
+            toast({
+                title: "Success",
+                description: "API Response copied to clipboard.",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not copy response to clipboard.",
+            });
+        }
+    };
 
     const handleSearch = async () => {
         setIsLoading(true);
@@ -194,9 +214,20 @@ export default function DatadogQueryPage() {
             )}
 
             <Card>
-                <CardHeader>
-                    <CardTitle>API Response</CardTitle>
-                    <CardDescription>The final response from the Datadog API (using the trace_id) will appear here.</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div>
+                        <CardTitle>API Response</CardTitle>
+                        <CardDescription>The final response from the Datadog API (using the trace_id) will appear here.</CardDescription>
+                    </div>
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCopyApiResponse}
+                        disabled={!response || isLoading}
+                        aria-label="Copy API Response"
+                    >
+                        <Copy className="h-4 w-4" />
+                    </Button>
                 </CardHeader>
                 <CardContent>
                      {error && (
