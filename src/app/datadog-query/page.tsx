@@ -120,27 +120,14 @@ export default function DatadogQueryPage() {
                     <CardTitle>Query Payload</CardTitle>
                     <CardDescription>Enter the details for your Datadog query.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="space-y-2 lg:col-span-3">
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
                         <Label htmlFor="reportId">Report ID</Label>
                         <Input id="reportId" value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="e.g., 146406" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="indexes">Indexes</Label>
-                        <Input id="indexes" value={indexes} onChange={(e) => setIndexes(e.target.value)} placeholder="e.g., main, web" />
-                        <p className="text-xs text-muted-foreground">Comma-separated list of indexes.</p>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="daysBack">Days To Search Back</Label>
                         <Input id="daysBack" type="number" value={daysBack} onChange={(e) => setDaysBack(Number(e.target.value))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="sort">Sort</Label>
-                        <Input id="sort" value={sort} onChange={(e) => setSort(e.target.value)} placeholder="e.g., timestamp" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="limit">Page Limit (Initial Query)</Label>
-                        <Input id="limit" type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">
@@ -150,7 +137,7 @@ export default function DatadogQueryPage() {
                             <p><strong>To:</strong> {searchTimestamps.to}</p>
                         </div>
                     )}
-                    <Button onClick={handleSearch} disabled={isLoading}>
+                    <Button onClick={handleSearch} disabled={isLoading || !reportId}>
                         {isLoading ? 'Searching...' : 'Search'}
                     </Button>
                 </CardFooter>
