@@ -80,9 +80,8 @@ export default function DatadogQueryPage() {
                 let orgPathData: string[] | null = null;
 
                 for (const event of result.finalResponse.data) {
-                    if (event.attributes?.message && typeof event.attributes.message === 'string') {
-                        const message = event.attributes.message;
-
+                    const message = event.attributes?.message;
+                    if (typeof message === 'string') {
                         // Find and parse "identifiers"
                         if (!identifiersData && message.toLowerCase().includes("identifiers")) {
                              const match = message.match(/identifiers:\s*({[^}]+})/i);
@@ -98,16 +97,14 @@ export default function DatadogQueryPage() {
 
                         // Find and parse "org_path"
                         if (!orgPathData && message.toLowerCase().includes('"org_path"')) {
-                            const orgPathMatch = message.match(/"org_path"\s*:\s*\[([^\]]*)\]/i);
-                            if (orgPathMatch && orgPathMatch[1]) {
+                             const orgPathMatch = message.match(/"org_path"\s*:\s*(\[[^\]]*\])/is);
+                             if (orgPathMatch && orgPathMatch[1]) {
                                 try {
-                                    // Extract content, remove newlines, filter empty strings
-                                    const pathContent = orgPathMatch[1].replace(/\n/g, '').trim();
-                                    const paths = pathContent.split('"').filter(s => s.trim() !== '' && s.trim() !== ',');
-                                    
-                                    // Reconstruct as a valid JSON array string
-                                    const validJsonString = `[${paths.map(p => `"${p}"`).join(',')}]`;
-                                    orgPathData = JSON.parse(validJsonString);
+                                    const arrayContent = orgPathMatch[1];
+                                    const stringValues = arrayContent.match(/"(.*?)"/g);
+                                    if(stringValues) {
+                                       orgPathData = stringValues.map(s => s.replace(/"/g, ''));
+                                    }
                                 } catch (e) {
                                      console.error("Failed to parse org_path:", e);
                                 }
