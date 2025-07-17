@@ -75,62 +75,32 @@ export default function DatadogQueryPage() {
             setResponse(result.finalResponse);
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
-                let identifiersObj = {};
-                let orgPathObj = {};
+                let identifiersObj = null;
 
-                const extractJson = (message: string, keyword: string): object | null => {
-                    try {
-                        const keywordIndex = message.indexOf(keyword);
-                        if (keywordIndex === -1) return null;
-                        
-                        const startIndex = message.indexOf('{', keywordIndex);
-                        if (startIndex === -1) return null;
-
-                        let braceCount = 1;
-                        let endIndex = startIndex + 1;
-                        while (endIndex < message.length && braceCount > 0) {
-                            if (message[endIndex] === '{') braceCount++;
-                            if (message[endIndex] === '}') braceCount--;
-                            endIndex++;
-                        }
-
-                        if (braceCount !== 0) return null; // Mismatched braces
-
-                        const jsonStr = message.substring(startIndex, endIndex);
-                        // Replace single quotes for valid JSON
-                        const validJsonStr = jsonStr.replace(/'/g, '"');
-                        return JSON.parse(validJsonStr);
-                    } catch (e) {
-                        console.error(`Failed to parse object with keyword '${keyword}':`, e);
-                        return null;
-                    }
-                };
-                
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
                     if (typeof message !== 'string') continue;
 
-                    if (Object.keys(identifiersObj).length === 0) {
-                       const extracted = extractJson(message, "identifiers");
-                       if (extracted) {
-                           identifiersObj = extracted;
-                       }
-                    }
-                    
-                    if (Object.keys(orgPathObj).length === 0) {
-                        const extracted = extractJson(message, "org_path");
-                        if (extracted) {
-                            orgPathObj = extracted;
+                    const keyword = "Identifiers:";
+                    const keywordIndex = message.indexOf(keyword);
+
+                    if (keywordIndex !== -1) {
+                        try {
+                            const jsonStr = message.substring(keywordIndex + keyword.length).trim();
+                            const validJsonStr = jsonStr.replace(/'/g, '"');
+                            identifiersObj = JSON.parse(validJsonStr);
+                            break; 
+                        } catch (e) {
+                            console.error("Failed to parse Identifiers object:", e);
+                            continue;
                         }
                     }
                 }
-
-                const combinedResult = { ...identifiersObj, ...orgPathObj };
-
-                if (Object.keys(combinedResult).length > 0) {
-                    setExtractedIdentifiers(JSON.stringify(combinedResult, null, 2));
+                
+                if (identifiersObj) {
+                    setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
                 } else {
-                    setExtractedIdentifiers(""); // Clear if nothing was found
+                    setExtractedIdentifiers("");
                 }
             }
         }
@@ -234,7 +204,7 @@ export default function DatadogQueryPage() {
                     <CardHeader>
                         <CardTitle>Extracted Report Payload</CardTitle>
                         <CardDescription>
-                            Combined identifiers and org_path from the trace logs.
+                            Key-value pairs from the first log message containing "Identifiers:".
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
