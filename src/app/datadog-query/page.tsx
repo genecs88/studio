@@ -72,34 +72,35 @@ export default function DatadogQueryPage() {
             setError(result.error + (result.details ? `: ${JSON.stringify(result.details, null, 2)}` : ''));
             setResponse(result.finalResponse || result.initialResponse || result.details || null);
         } else {
-            // The response to display is the final one from the trace_id query
             setResponse(result.finalResponse);
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                  for (const event of result.finalResponse.data) {
                      if (event.attributes?.message && typeof event.attributes.message === 'string') {
                         const message = event.attributes.message;
-                         // Check for the "Identifiers:" keyword
-                        if (message.includes("Identifiers:")) {
+                        if (message.includes("New report request for use")) {
                             const startIndex = message.indexOf('{');
-                            const endIndex = message.lastIndexOf('}');
-                            
-                            if (startIndex !== -1 && endIndex > startIndex) {
-                                let objectString = message.substring(startIndex, endIndex + 1);
-                                const jsonString = objectString.replace(/'/g, '"');
-
+                            if (startIndex !== -1) {
+                                // Assume payload is the rest of the string
+                                let objectString = message.substring(startIndex);
+                                
                                 try {
-                                    const identifiersObject = JSON.parse(jsonString);
-                                    const identifiersText = Object.entries(identifiersObject)
-                                        .map(([key, value]) => `${key}: ${value}`)
-                                        .join('\n');
+                                    const fullPayload = JSON.parse(objectString);
+                                    
+                                    const filteredPayload: { [key: string]: any } = {};
+                                    for (const key in fullPayload) {
+                                        if (key === 'metadata') {
+                                            break; // Stop when we hit 'metadata'
+                                        }
+                                        filteredPayload[key] = fullPayload[key];
+                                    }
 
-                                    if (identifiersText) {
-                                        setExtractedIdentifiers(identifiersText);
-                                        break; 
+                                    if (Object.keys(filteredPayload).length > 0) {
+                                        setExtractedIdentifiers(JSON.stringify(filteredPayload, null, 2));
+                                        break; // Found what we needed, exit loop
                                     }
                                 } catch (e) {
-                                    // Invalid JSON, continue
+                                    // Invalid JSON, continue to next log
                                 }
                             }
                         }
@@ -205,16 +206,16 @@ export default function DatadogQueryPage() {
             {extractedIdentifiers && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Extracted Identifiers</CardTitle>
+                        <CardTitle>Extracted Report Payload</CardTitle>
                         <CardDescription>
-                            Key-value pairs from the object found in the first relevant log event.
+                            Key-value pairs from the report payload before the 'metadata' key.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Textarea
                             readOnly
                             value={extractedIdentifiers}
-                            rows={8}
+                            rows={10}
                             className="font-mono text-sm"
                         />
                     </CardContent>
