@@ -75,39 +75,49 @@ export default function DatadogQueryPage() {
             setResponse(result.finalResponse);
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
+                 let combinedResult: { [key: string]: any } = {};
+                 let identifiersFound = false;
+                 let orgPathFound = false;
+
                  for (const event of result.finalResponse.data) {
                      if (event.attributes?.message && typeof event.attributes.message === 'string') {
                         const message = event.attributes.message;
-                        // Correctly search for "user" not "use"
-                        if (message.includes("New report request for user")) {
-                            const startIndex = message.indexOf('{');
-                            if (startIndex !== -1) {
-                                // Assume payload is the rest of the string
-                                let objectString = message.substring(startIndex);
-                                
+                        
+                        // Find and parse "identifiers"
+                        if (!identifiersFound && message.includes("identifiers")) {
+                            const identifiersMatch = message.match(/identifiers: ({.*})/);
+                            if (identifiersMatch && identifiersMatch[1]) {
                                 try {
-                                    // Replace single quotes with double quotes for valid JSON
-                                    const validJsonString = objectString.replace(/'/g, '"');
-                                    const fullPayload = JSON.parse(validJsonString);
-                                    
-                                    const filteredPayload: { [key: string]: any } = {};
-                                    for (const key in fullPayload) {
-                                        if (key === 'metadata') {
-                                            break; // Stop when we hit 'metadata'
-                                        }
-                                        filteredPayload[key] = fullPayload[key];
-                                    }
-
-                                    if (Object.keys(filteredPayload).length > 0) {
-                                        setExtractedIdentifiers(JSON.stringify(filteredPayload, null, 2));
-                                        break; // Found what we needed, exit loop
-                                    }
+                                    const validJsonString = identifiersMatch[1].replace(/'/g, '"');
+                                    const parsedIdentifiers = JSON.parse(validJsonString);
+                                    combinedResult = { ...combinedResult, ...parsedIdentifiers };
+                                    identifiersFound = true;
                                 } catch (e) {
-                                    // Invalid JSON, continue to next log
+                                    // Could not parse identifiers
+                                }
+                            }
+                        }
+
+                        // Find and parse "org_path"
+                        if (!orgPathFound && message.includes("org_path")) {
+                            const orgPathMatch = message.match(/org_path: (\[.*?\])/);
+                            if (orgPathMatch && orgPathMatch[1]) {
+                                try {
+                                    const validJsonString = orgPathMatch[1].replace(/'/g, '"');
+                                    const parsedOrgPath = JSON.parse(validJsonString);
+                                    combinedResult.org_path = parsedOrgPath;
+                                    orgPathFound = true;
+                                } catch (e) {
+                                    // Could not parse org_path
                                 }
                             }
                         }
                     }
+                    if(identifiersFound && orgPathFound) break;
+                }
+
+                if (Object.keys(combinedResult).length > 0) {
+                    setExtractedIdentifiers(JSON.stringify(combinedResult, null, 2));
                 }
             }
         }
@@ -211,7 +221,7 @@ export default function DatadogQueryPage() {
                     <CardHeader>
                         <CardTitle>Extracted Report Payload</CardTitle>
                         <CardDescription>
-                            Key-value pairs from the report payload before the 'metadata' key.
+                            Combined identifiers and org_path from the trace logs.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -227,7 +237,3 @@ export default function DatadogQueryPage() {
         </div>
     );
 }
-
-    
-
-    
