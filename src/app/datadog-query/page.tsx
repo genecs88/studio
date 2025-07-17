@@ -99,8 +99,9 @@ export default function DatadogQueryPage() {
             setResponse(result.finalResponse);
 
             let identifiersFound = false;
+            let identifiersObj: any = null;
             let parentOrgFound = false;
-            let orgPathFound = false;
+            let orgPathValue: string[] | null = null;
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 // Extract Identifiers
@@ -115,8 +116,7 @@ export default function DatadogQueryPage() {
                         try {
                             const jsonStr = message.substring(keywordIndex + keyword.length).trim();
                             const validJsonStr = jsonStr.replace(/'/g, '"');
-                            const identifiersObj = JSON.parse(validJsonStr);
-                            setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
+                            identifiersObj = JSON.parse(validJsonStr);
                             identifiersFound = true;
                             break; 
                         } catch (e) {
@@ -134,11 +134,32 @@ export default function DatadogQueryPage() {
                         parentOrgFound = true;
 
                         if (attributes.org_path) {
+                            orgPathValue = attributes.org_path;
                             setExtractedOrgPath(JSON.stringify(attributes.org_path, null, 2));
-                            orgPathFound = true;
                         }
                         break;
                     }
+                }
+
+                if (identifiersObj && orgPathValue) {
+                    const newPayload: { [key: string]: any } = {};
+                    const accessionNumberKey = Object.keys(identifiersObj).find(k => k.toLowerCase() === 'accession_number');
+
+                    if (accessionNumberKey) {
+                        Object.keys(identifiersObj).forEach(key => {
+                            newPayload[key] = identifiersObj[key];
+                            if (key === accessionNumberKey) {
+                                newPayload['org_path'] = orgPathValue;
+                            }
+                        });
+                    } else {
+                        // If accession_number is not found, just add identifiers and org_path
+                        Object.assign(newPayload, identifiersObj);
+                        newPayload['org_path'] = orgPathValue;
+                    }
+                    setExtractedIdentifiers(JSON.stringify(newPayload, null, 2));
+                } else if (identifiersObj) {
+                    setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
                 }
             }
 
@@ -148,7 +169,7 @@ export default function DatadogQueryPage() {
             if (!parentOrgFound) {
                 setExtractedParentOrg("not found");
             }
-            if (!orgPathFound) {
+            if (!orgPathValue) {
                 setExtractedOrgPath("not found");
             }
         }
@@ -310,5 +331,3 @@ export default function DatadogQueryPage() {
         </div>
     );
 }
-
-    
