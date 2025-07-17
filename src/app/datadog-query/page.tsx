@@ -76,19 +76,18 @@ export default function DatadogQueryPage() {
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 let combinedResult: { [key: string]: any } = {};
-                let identifiersData: { [key: string]: any } | null = null;
-                let orgPathData: string[] | null = null;
 
                 for (const event of result.finalResponse.data) {
                     const message = event.attributes?.message;
                     if (typeof message === 'string') {
                         // Find and parse "identifiers"
-                        if (!identifiersData && message.toLowerCase().includes("identifiers")) {
-                             const match = message.match(/identifiers:\s*({[^}]+})/i);
+                        if (message.toLowerCase().includes("identifiers")) {
+                             const match = message.match(/identifiers['"]?:\s*({.+?})/i);
                             if (match && match[1]) {
                                 try {
                                     const validJsonString = match[1].replace(/'/g, '"');
-                                    identifiersData = JSON.parse(validJsonString);
+                                    const identifiersData = JSON.parse(validJsonString);
+                                    combinedResult = { ...combinedResult, ...identifiersData };
                                 } catch (e) {
                                     console.error("Failed to parse identifiers:", e);
                                 }
@@ -96,30 +95,18 @@ export default function DatadogQueryPage() {
                         }
 
                         // Find and parse "org_path"
-                        if (!orgPathData && message.toLowerCase().includes('"org_path"')) {
-                             const orgPathMatch = message.match(/"org_path"\s*:\s*(\[[^\]]*\])/is);
-                             if (orgPathMatch && orgPathMatch[1]) {
+                        if (message.toLowerCase().includes("org_path")) {
+                            const orgPathMatch = message.match(/org_path['"]?\s*:\s*(\[[^\]]+\])/i);
+                            if (orgPathMatch && orgPathMatch[1]) {
                                 try {
-                                    const arrayContent = orgPathMatch[1];
-                                    const stringValues = arrayContent.match(/"(.*?)"/g);
-                                    if(stringValues) {
-                                       orgPathData = stringValues.map(s => s.replace(/"/g, ''));
-                                    }
+                                    const validJsonString = orgPathMatch[1].replace(/'/g, '"');
+                                    const orgPathData = JSON.parse(validJsonString);
+                                    combinedResult.org_path = orgPathData;
                                 } catch (e) {
-                                     console.error("Failed to parse org_path:", e);
+                                    console.error("Failed to parse org_path:", e);
                                 }
                             }
                         }
-                    }
-                    if (identifiersData && orgPathData) break;
-                }
-                
-                if (identifiersData || orgPathData) {
-                    if(identifiersData) {
-                        combinedResult = { ...combinedResult, ...identifiersData };
-                    }
-                    if(orgPathData) {
-                        combinedResult.org_path = orgPathData;
                     }
                 }
 
