@@ -102,6 +102,7 @@ export default function DatadogQueryPage() {
             let identifiersObj: any = null;
             let parentOrgFound = false;
             let orgPathValue: string[] | null = null;
+            let parentOrgValue: string | null = null;
 
             if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
                 // Extract Identifiers
@@ -130,47 +131,30 @@ export default function DatadogQueryPage() {
                 for (const event of result.finalResponse.data) {
                     const attributes = event.attributes?.attributes;
                     if (attributes && attributes.parent_org) {
-                        setExtractedParentOrg(attributes.parent_org);
+                        parentOrgValue = attributes.parent_org;
                         parentOrgFound = true;
 
                         if (attributes.org_path) {
                             orgPathValue = attributes.org_path;
-                            setExtractedOrgPath(JSON.stringify(attributes.org_path, null, 2));
                         }
                         break;
                     }
                 }
 
                 if (identifiersObj && orgPathValue) {
-                    const newPayload: { [key: string]: any } = {};
-                    const accessionNumberKey = Object.keys(identifiersObj).find(k => k.toLowerCase() === 'accession_number');
-
-                    if (accessionNumberKey) {
-                        Object.keys(identifiersObj).forEach(key => {
-                            newPayload[key] = identifiersObj[key];
-                            if (key === accessionNumberKey) {
-                                newPayload['org_path'] = orgPathValue;
-                            }
-                        });
-                    } else {
-                        // If accession_number is not found, just add identifiers and org_path
-                        Object.assign(newPayload, identifiersObj);
-                        newPayload['org_path'] = orgPathValue;
-                    }
-                    setExtractedIdentifiers(JSON.stringify(newPayload, null, 2));
-                } else if (identifiersObj) {
+                   identifiersObj.org_path = orgPathValue;
+                }
+                
+                if (identifiersObj) {
                     setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
                 }
             }
 
+            setExtractedParentOrg(parentOrgValue || "not found");
+            setExtractedOrgPath(orgPathValue ? JSON.stringify(orgPathValue, null, 2) : "not found");
+
             if (!identifiersFound) {
                 setExtractedIdentifiers("not found");
-            }
-            if (!parentOrgFound) {
-                setExtractedParentOrg("not found");
-            }
-            if (!orgPathValue) {
-                setExtractedOrgPath("not found");
             }
         }
         
