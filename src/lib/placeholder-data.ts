@@ -104,6 +104,20 @@ export const organizations: Organization[] = [
     studyIdentifiers: [{ key: "Site ID", value: "site_ID" }],
     createdAt: "2024-06-01",
   },
+  {
+    id: "org_5",
+    name: "eugene_clinic",
+    environmentId: "env_1",
+    studyIdentifiers: [],
+    createdAt: "2024-07-01",
+  },
+  {
+    id: "org_6",
+    name: "Staging Org",
+    environmentId: "env_2",
+    studyIdentifiers: [],
+    createdAt: "2024-07-01",
+  },
 ];
 
 export const apiKeys: ApiKey[] = [
@@ -117,10 +131,25 @@ export const apiKeys: ApiKey[] = [
     environmentId: "env_1",
     createdAt: "2024-06-01"
   },
+  {
+    id: "key_5",
+    key: "ek_ext_xxxxxxxxxxxxxxxxxxxxEUGENE",
+    organizationId: "org_5",
+    environmentId: "env_1",
+    createdAt: "2024-07-01"
+  },
+  {
+    id: "key_6",
+    key: "ek_ext_xxxxxxxxxxxxxxxxxxxxSTAGING",
+    organizationId: "org_6",
+    environmentId: "env_2",
+    createdAt: "2024-07-01"
+  },
 ];
 
 export const environments: Environment[] = [
   { id: "env_1", name: "external.radpair.com", url: "https://api.radpair.com", createdAt: "2023-01-01" },
+  { id: "env_2", name: "staging", url: "https://api.staging.radpair.com", createdAt: "2024-07-01" },
 ];
 
 export const orgPaths: OrgPath[] = [

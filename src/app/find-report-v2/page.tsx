@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAppData } from "@/context/app-data-context";
-import { JsonViewer } from "@textea/json-viewer"
+import { findIdentifiersByReportId } from "@/app/datadog-query/actions";
+import { JsonViewer } from "@textea/json-viewer";
 import {
   Card,
   CardContent,
@@ -12,295 +13,402 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertCircle, Search, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import type { ApiKey } from "@/lib/placeholder-data";
 
 export default function FindReportV2Page() {
-  const { environments, organizations, apiKeys, orgPaths, apiActions } = useAppData();
+    const { environments, organizations, apiKeys, apiActions } = useAppData();
 
-  const [selectedEnvironment, setSelectedEnvironment] = useState("");
-  const [selectedOrganization, setSelectedOrganization] = useState("");
-  const [selectedOrgPath, setSelectedOrgPath] = useState("");
-  const [accessionNumber, setAccessionNumber] = useState("");
-  const [jsonPayload, setJsonPayload] = useState("");
-  const [response, setResponse] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [constructedPostUrl, setConstructedPostUrl] = useState("");
-
-  const filteredOrganizations = useMemo(() => {
-    if (!selectedEnvironment) return [];
-    return organizations.filter(
-      (org) => org.environmentId === selectedEnvironment
-    );
-  }, [selectedEnvironment, organizations]);
-
-  const filteredOrgPaths = useMemo(() => {
-    if (!selectedOrganization) return [];
-    return orgPaths.filter((path) => path.organizationId === selectedOrganization);
-  }, [selectedOrganization, orgPaths]);
-
-  const selectedOrgDetails = useMemo(() => {
-    return organizations.find((org) => org.id === selectedOrganization);
-  }, [selectedOrganization, organizations]);
-
-  const handleEnvironmentChange = (value: string) => {
-    setSelectedEnvironment(value);
-    setSelectedOrganization("");
-    setSelectedOrgPath("");
-    setConstructedPostUrl("");
-  };
-
-  const handleOrganizationChange = (value: string) => {
-    setSelectedOrganization(value);
-    setSelectedOrgPath("");
-    setConstructedPostUrl("");
-  };
-  
-  const handleReset = () => {
-    setSelectedEnvironment("");
-    setSelectedOrganization("");
-    setSelectedOrgPath("");
-    setAccessionNumber("");
-    setJsonPayload("");
-    setResponse(null);
-    setIsLoading(false);
-    setConstructedPostUrl("");
-  };
-
-  const handleCreateJson = () => {
-    if (!selectedOrganization) {
-      alert("Please select an organization first.");
-      return;
-    }
-
-    const payload: { [key: string]: any } = {};
-
-    payload.accession_number = accessionNumber;
-
-    if (selectedOrgDetails && selectedOrgDetails.studyIdentifiers) {
-      for (const identifier of selectedOrgDetails.studyIdentifiers) {
-        payload[identifier.value] = "";
-      }
-    }
-
-    if (selectedOrgPath) {
-      const orgPathData = orgPaths.find((p) => p.id === selectedOrgPath);
-      if (orgPathData) {
-        payload.org_path = orgPathData.path.split(",");
-      }
-    }
-
-    setJsonPayload(JSON.stringify(payload, null, 2));
-
-    const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND');
+    // Datadog query state
+    const [reportId, setReportId] = useState("");
+    const [env, setEnv] = useState("prod");
+    const [daysBack, setDaysBack] = useState(1);
+    const [datadogResponse, setDatadogResponse] = useState<any>(null);
+    const [isDatadogLoading, setIsDatadogLoading] = useState(false);
+    const [datadogError, setDatadogError] = useState<string | null>(null);
+    const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
+    const [extractedParentOrg, setExtractedParentOrg] = useState("");
+    const [extractedOrgPath, setExtractedOrgPath] = useState("");
+    const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
+    const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
+    const [searchCompleted, setSearchCompleted] = useState(false);
     
-    if (env && findAction) {
-        setConstructedPostUrl(`${env.url}${findAction.value}`);
-    } else {
-        setConstructedPostUrl("");
-    }
-  };
-  
-  const handleFind = async () => {
-    setIsLoading(true);
-    setResponse(null);
-
-    const env = environments.find(e => e.id === selectedEnvironment);
-    const findAction = apiActions.find(a => a.key === 'FIND');
-    const org = organizations.find(o => o.id === selectedOrganization);
+    // Find Report state
+    const [jsonPayload, setJsonPayload] = useState("");
+    const [findResponse, setFindResponse] = useState<any>(null);
+    const [isFindLoading, setIsFindLoading] = useState(false);
+    const [constructedPostUrl, setConstructedPostUrl] = useState("");
     
-    if(!env || !findAction || !org) {
-        setResponse("Error: Could not construct URL. Missing environment, action, or organization details.");
-        setIsLoading(false);
-        return;
-    }
+    const { toast } = useToast();
 
-    const urlToFetch = `${env.url}${findAction.value}`;
-    
-    const apiKeyData = apiKeys.find(k => k.organizationId === selectedOrganization && k.environmentId === selectedEnvironment);
+    // Automatically update the JSON payload when identifiers are extracted
+    useEffect(() => {
+        if (extractedIdentifiers) {
+            setJsonPayload(extractedIdentifiers);
+        }
+    }, [extractedIdentifiers]);
 
-    if (!apiKeyData) {
-        setResponse("Error: API Key for the selected organization and environment not found.");
-        setIsLoading(false);
-        return;
-    }
+    const handleDatadogSearch = async () => {
+        setIsDatadogLoading(true);
+        setDatadogError(null);
+        setDatadogResponse(null);
+        setExtractedIdentifiers("");
+        setExtractedParentOrg("");
+        setExtractedOrgPath("");
+        setFoundTraceId(null);
+        setSearchCompleted(false);
 
-    try {
-        const res = await fetch(urlToFetch, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKeyData.key}`
+        const toDate = new Date();
+        const fromDate = new Date();
+        fromDate.setDate(toDate.getDate() - daysBack);
+
+        const to = toDate.toISOString();
+        const from = fromDate.toISOString();
+
+        setSearchTimestamps({ from, to });
+
+        const constructedQuery = `env:${env} "Processing normal for report ${reportId}"`;
+
+        const payload = {
+            filter: {
+                query: constructedQuery,
+                indexes: ['main'],
+                from,
+                to,
             },
-            body: jsonPayload,
-        });
+            sort: 'timestamp',
+            page: {
+                limit: 5,
+            },
+        };
+        
+        const result = await findIdentifiersByReportId(payload);
+        
+        setFoundTraceId(result.traceId || null);
 
-        const responseText = await res.text();
-        try {
-            const responseData = JSON.parse(responseText);
-            setResponse(responseData);
-        } catch (e) {
-            setResponse(responseText);
+        if (result.error) {
+            setDatadogError(result.error + (result.details ? `: ${JSON.stringify(result.details, null, 2)}` : ''));
+            setDatadogResponse(result.finalResponse || result.initialResponse || result.details || null);
+        } else {
+            setDatadogResponse(result.finalResponse);
+
+            let identifiersFound = false;
+            let identifiersObj: any = null;
+            let parentOrgFound = false;
+            let orgPathValue: string[] | null = null;
+            let parentOrgValue: string | null = null;
+
+            if (result.finalResponse?.data && Array.isArray(result.finalResponse.data)) {
+                // Extract Identifiers
+                for (const event of result.finalResponse.data) {
+                    const message = event.attributes?.message;
+                    if (typeof message !== 'string') continue;
+
+                    const keyword = "Identifiers:";
+                    const keywordIndex = message.indexOf(keyword);
+
+                    if (keywordIndex !== -1) {
+                        try {
+                            const jsonStr = message.substring(keywordIndex + keyword.length).trim();
+                            const validJsonStr = jsonStr.replace(/'/g, '"');
+                            identifiersObj = JSON.parse(validJsonStr);
+                            identifiersFound = true;
+                            break; 
+                        } catch (e) {
+                            console.error("Failed to parse Identifiers object:", e);
+                            setDatadogError("Failed to parse Identifiers JSON from log message. See console for details.");
+                        }
+                    }
+                }
+                
+                // Extract parent_org and org_path from the specific log entry
+                for (const event of result.finalResponse.data) {
+                    const attributes = event.attributes?.attributes;
+                    if (attributes && attributes.parent_org) {
+                        parentOrgValue = attributes.parent_org;
+                        parentOrgFound = true;
+
+                        if (attributes.org_path) {
+                            orgPathValue = attributes.org_path;
+                        }
+                        break;
+                    }
+                }
+
+                if (identifiersObj && orgPathValue) {
+                   identifiersObj.org_path = orgPathValue;
+                }
+                
+                if (identifiersObj) {
+                    setExtractedIdentifiers(JSON.stringify(identifiersObj, null, 2));
+                }
+            }
+
+            setExtractedParentOrg(parentOrgValue || "not found");
+            setExtractedOrgPath(orgPathValue ? JSON.stringify(orgPathValue, null, 2) : "not found");
+
+            if (!identifiersFound) {
+                setExtractedIdentifiers("not found");
+            }
+        }
+        
+        setIsDatadogLoading(false);
+        setSearchCompleted(true);
+    };
+
+    const handleFind = async () => {
+        setIsFindLoading(true);
+        setFindResponse(null);
+        setConstructedPostUrl("");
+
+        // Determine environment and organization for API call
+        const targetEnvName = env === 'prod' ? 'external.radpair.com' : 'staging';
+        const environment = environments.find(e => e.name.toLowerCase() === targetEnvName.toLowerCase());
+
+        if (!environment) {
+            setFindResponse(`Error: Environment details for '${targetEnvName}' not found.`);
+            setIsFindLoading(false);
+            return;
         }
 
-    } catch (error: any) {
-        setResponse(`Error: ${error.message}`);
-    } finally {
-        setIsLoading(false);
-    }
-  };
+        const findAction = apiActions.find(a => a.key === 'FIND');
+        if (!findAction) {
+            setFindResponse("Error: 'FIND' API action not configured.");
+            setIsFindLoading(false);
+            return;
+        }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Find Report V2
-        </h1>
-      </div>
+        let parsedPayload;
+        try {
+            parsedPayload = JSON.parse(jsonPayload);
+        } catch (e) {
+            setFindResponse("Error: JSON Payload is not valid JSON.");
+            setIsFindLoading(false);
+            return;
+        }
 
-      <Card>
-        <CardContent className="p-6 space-y-4">
+        // Find the organization that matches the parent_org from the logs
+        const organization = organizations.find(o => o.name.toLowerCase() === extractedParentOrg.toLowerCase() && o.environmentId === environment.id);
+
+        if (!organization) {
+            setFindResponse(`Error: Organization '${extractedParentOrg}' not found in environment '${environment.name}'.`);
+            setIsFindLoading(false);
+            return;
+        }
+        
+        const apiKeyData = apiKeys.find(k => k.organizationId === organization.id && k.environmentId === environment.id);
+        if (!apiKeyData) {
+            setFindResponse(`Error: API Key for organization '${organization.name}' in environment '${environment.name}' not found.`);
+            setIsFindLoading(false);
+            return;
+        }
+
+        const urlToFetch = `${environment.url}${findAction.value}`;
+        setConstructedPostUrl(urlToFetch);
+
+        try {
+            const res = await fetch(urlToFetch, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKeyData.key}`
+                },
+                body: jsonPayload,
+            });
+
+            const responseText = await res.text();
+            try {
+                setFindResponse(JSON.parse(responseText));
+            } catch (e) {
+                setFindResponse(responseText);
+            }
+        } catch (error: any) {
+            setFindResponse(`Error: ${error.message}`);
+        } finally {
+            setIsFindLoading(false);
+        }
+    };
+    
+    return (
+        <div className="flex flex-col gap-6">
             <div>
-                <Label className="font-semibold">Environment</Label>
-                <RadioGroup
-                    value={selectedEnvironment}
-                    onValueChange={handleEnvironmentChange}
-                    className="flex flex-wrap gap-x-6 gap-y-2 mt-2"
-                >
-                    {environments.map((env) => (
-                        <div key={env.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={env.id} id={`find-v2-env-${env.id}`} />
-                            <Label htmlFor={`find-v2-env-${env.id}`} className="font-normal cursor-pointer">
-                                {env.name}
-                            </Label>
-                        </div>
-                    ))}
-                </RadioGroup>
+                <h1 className="text-3xl font-bold font-headline tracking-tight">
+                    Find Report V2
+                </h1>
+                <p className="text-muted-foreground">Search Datadog to get a report payload, then use it to find the report.</p>
             </div>
-            <div className="grid md:grid-cols-3 gap-4 pt-2">
-                <Select value={selectedOrganization} onValueChange={handleOrganizationChange} disabled={!selectedEnvironment}>
-                  <SelectTrigger id="organization">
-                      <SelectValue placeholder="Select Organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {filteredOrganizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                      </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select value={selectedOrgPath} onValueChange={setSelectedOrgPath} disabled={!selectedOrganization}>
-                  <SelectTrigger id="org-path">
-                      <SelectValue placeholder="Select Org Path" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {filteredOrgPaths.map((path) => (
-                      <SelectItem key={path.id} value={path.id}>
-                          {path.path}
-                      </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
 
-                <Input
-                    id="accession_number"
-                    placeholder="Accession Number"
-                    value={accessionNumber}
-                    onChange={(e) => setAccessionNumber(e.target.value)}
-                    disabled={!selectedEnvironment}
-                />
-            </div>
-        </CardContent>
-        <CardFooter>
-            <div className="flex gap-2">
-                <Button onClick={handleCreateJson} disabled={!selectedOrganization}>Create JSON</Button>
-                <Button onClick={handleReset} variant="outline">Reset</Button>
-            </div>
-        </CardFooter>
-      </Card>
-      
-      <div className="grid md:grid-cols-4 gap-6">
-        <Card className="md:col-span-1">
-            <CardHeader>
-                <CardTitle>JSON Payload</CardTitle>
-                <CardDescription>Generated JSON, you can edit it before sending.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Textarea
-                    value={jsonPayload}
-                    onChange={(e) => setJsonPayload(e.target.value)}
-                    rows={12}
-                    className="font-mono text-sm"
-                />
-            </CardContent>
-        </Card>
-        <Card className="md:col-span-3">
-            <CardHeader>
-                <CardTitle>API Response</CardTitle>
-                <CardDescription>The response from the POST request will appear here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-[260px] text-muted-foreground">
-                        <p>Loading...</p>
+            {/* Step 1: Datadog Query */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Step 1: Query Datadog</CardTitle>
+                    <CardDescription>Enter a Report ID to find its trace and extract the payload.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                        <Label htmlFor="reportId">Report ID</Label>
+                        <Input id="reportId" value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="e.g., 146406" />
                     </div>
-                ) : response ? (
-                    typeof response === 'string' ? (
+                    <div className="space-y-2">
+                        <Label htmlFor="daysBack">Days To Search Back</Label>
+                        <Input id="daysBack" type="number" value={daysBack} onChange={(e) => setDaysBack(Number(e.target.value))} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="env">Environment</Label>
+                        <Input id="env" value={env} onChange={(e) => setEnv(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter className="flex-col items-start gap-4">
+                    <Button onClick={handleDatadogSearch} disabled={isDatadogLoading || !reportId}>
+                        {isDatadogLoading ? 'Searching Datadog...' : 'Search Datadog'}
+                    </Button>
+                </CardFooter>
+            </Card>
+
+            {/* Datadog Results */}
+            {searchCompleted && (
+                 <>
+                    {foundTraceId && (
+                        <Alert>
+                            <Search className="h-4 w-4" />
+                            <AlertTitle>Trace ID Found</AlertTitle>
+                            <AlertDescription>
+                                Found trace_id: <span className="font-mono bg-muted px-1 py-0.5 rounded">{foundTraceId}</span>. Now searching logs with this trace ID.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Parent Org</CardTitle>
+                            <CardDescription>
+                                The value of the "parent_org" key from the first log found in the trace.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={extractedParentOrg}
+                                rows={2}
+                                className="font-mono text-sm"
+                                placeholder={isDatadogLoading ? "Searching..." : "Parent org will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Org Path</CardTitle>
+                             <CardDescription>
+                                The "org_path" value from the same log as the parent org.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={extractedOrgPath}
+                                rows={4}
+                                className="font-mono text-sm"
+                                placeholder={isDatadogLoading ? "Searching..." : "Org path will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Extracted Report Payload</CardTitle>
+                            <CardDescription>
+                                Key-value pairs from the first log message containing "Identifiers:". This will be used in Step 2.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                readOnly
+                                value={extractedIdentifiers}
+                                rows={10}
+                                className="font-mono text-sm"
+                                placeholder={isDatadogLoading ? "Searching..." : "Payload will appear here."}
+                            />
+                        </CardContent>
+                    </Card>
+                </>
+            )}
+
+            {/* Step 2: Find Report */}
+            <div className="grid md:grid-cols-4 gap-6">
+                <Card className="md:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Step 2: JSON Payload</CardTitle>
+                        <CardDescription>This payload will be sent to the FIND endpoint.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
                         <Textarea
-                            value={response}
-                            readOnly
+                            value={jsonPayload}
+                            onChange={(e) => setJsonPayload(e.target.value)}
                             rows={12}
                             className="font-mono text-sm"
                         />
-                    ) : (
-                        <div className="p-2 rounded-md bg-secondary text-secondary-foreground overflow-auto max-h-[260px] text-sm font-mono">
-                            <JsonViewer 
-                                value={response} 
-                                theme="dark"
-                                style={{ backgroundColor: 'transparent' }}
+                    </CardContent>
+                </Card>
+                <Card className="md:col-span-3">
+                    <CardHeader>
+                        <CardTitle>API Response (from FIND)</CardTitle>
+                        <CardDescription>The response from the FIND POST request will appear here.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isFindLoading ? (
+                            <div className="flex items-center justify-center h-[260px] text-muted-foreground">
+                                <p>Loading...</p>
+                            </div>
+                        ) : findResponse ? (
+                            typeof findResponse === 'string' ? (
+                                <Textarea
+                                    value={findResponse}
+                                    readOnly
+                                    rows={12}
+                                    className="font-mono text-sm"
+                                />
+                            ) : (
+                                <div className="p-2 rounded-md bg-secondary text-secondary-foreground overflow-auto max-h-[260px] text-sm font-mono">
+                                    <JsonViewer 
+                                        value={findResponse} 
+                                        theme="dark"
+                                        style={{ backgroundColor: 'transparent' }}
+                                    />
+                                </div>
+                            )
+                        ) : (
+                            <Textarea
+                                value=""
+                                readOnly
+                                rows={12}
+                                placeholder="FIND API response will be shown here."
+                                className="font-mono text-sm"
                             />
-                        </div>
-                    )
-                ) : (
-                    <Textarea
-                        value=""
-                        readOnly
-                        rows={12}
-                        placeholder="API response will be shown here."
-                        className="font-mono text-sm"
-                    />
-                )}
-            </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-2">
-        <Button onClick={handleFind} disabled={isLoading || !jsonPayload} size="lg">
-            {isLoading ? 'Finding...' : 'FIND'}
-        </Button>
-      </div>
-      
-      {constructedPostUrl && (
-        <div className="w-full p-2 mt-4 rounded-md bg-muted">
-            <p className="text-sm font-mono text-muted-foreground break-all">
-                {constructedPostUrl}
-            </p>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <div className="mt-2">
+                <Button onClick={handleFind} disabled={isFindLoading || !jsonPayload} size="lg">
+                    {isFindLoading ? 'Finding...' : 'FIND'}
+                </Button>
+            </div>
+            
+            {constructedPostUrl && (
+                <div className="w-full p-2 mt-4 rounded-md bg-muted">
+                    <p className="text-sm font-mono text-muted-foreground break-all">
+                        POST to: {constructedPostUrl}
+                    </p>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
