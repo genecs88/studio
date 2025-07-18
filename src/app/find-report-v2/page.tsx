@@ -54,6 +54,29 @@ export default function FindReportV2Page() {
         }
     }, [extractedIdentifiers]);
 
+    const handleClear = () => {
+        setReportId("");
+        setEnv("prod");
+        setDaysBack(1);
+        setDatadogResponse(null);
+        setIsDatadogLoading(false);
+        setDatadogError(null);
+        setExtractedIdentifiers("");
+        setExtractedParentOrg("");
+        setExtractedOrgPath("");
+        setSearchTimestamps(null);
+        setFoundTraceId(null);
+        setSearchCompleted(false);
+        setJsonPayload("");
+        setFindResponse(null);
+        setIsFindLoading(false);
+        setConstructedPostUrl("");
+        toast({
+            title: "Cleared",
+            description: "All fields have been reset.",
+        });
+    };
+
     const handleDatadogSearch = async () => {
         setIsDatadogLoading(true);
         setDatadogError(null);
@@ -63,6 +86,8 @@ export default function FindReportV2Page() {
         setExtractedOrgPath("");
         setFoundTraceId(null);
         setSearchCompleted(false);
+        setJsonPayload("");
+        setFindResponse(null);
 
         const toDate = new Date();
         const fromDate = new Date();
@@ -265,9 +290,14 @@ export default function FindReportV2Page() {
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">
-                    <Button onClick={handleDatadogSearch} disabled={isDatadogLoading || !reportId}>
-                        {isDatadogLoading ? 'Searching Datadog...' : 'Search Datadog'}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={handleDatadogSearch} disabled={isDatadogLoading || !reportId}>
+                            {isDatadogLoading ? 'Searching Datadog...' : 'Search Datadog'}
+                        </Button>
+                         <Button onClick={handleClear} variant="outline">
+                            Clear
+                        </Button>
+                    </div>
                 </CardFooter>
             </Card>
 
