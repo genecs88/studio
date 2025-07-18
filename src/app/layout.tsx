@@ -66,6 +66,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/transfer-ownership-v2') return 'Transfer Ownership V2';
     if (pathname === '/cancel-report') return 'Cancel Report';
+    if (pathname === '/cancel-report-v2') return 'Cancel Report V2';
     if (pathname === '/update-report') return 'Update Report Status';
     if (pathname === '/datadog-query') return 'Datadog Query';
     return 'Tech Support Tools';
@@ -164,6 +165,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   <Link href="/cancel-report">
                     <XCircle />
                     Cancel Report
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/cancel-report-v2'}>
+                  <Link href="/cancel-report-v2">
+                    <XCircle />
+                    Cancel Report V2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
