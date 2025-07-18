@@ -139,14 +139,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/transfer-ownership'}>
-                  <Link href="/transfer-ownership">
-                    <ArrowRightLeft />
-                    Transfer Ownership
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/transfer-ownership-v2'}>
                   <Link href="/transfer-ownership-v2">
                     <ArrowRightLeft />

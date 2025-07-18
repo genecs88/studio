@@ -65,21 +65,6 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
-        <Link href="/transfer-ownership" className="block hover:no-underline">
-          <Card className="hover:border-primary transition-colors h-full">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <ArrowRightLeft className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Transfer Ownership</CardTitle>
-                <CardDescription className="mt-1">
-                  Transfer ownership of a report.
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
         <Link href="/cancel-report" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
