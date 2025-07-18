@@ -70,6 +70,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/cancel-report-v2') return 'Cancel Report V2';
     if (pathname === '/delete-report-v2') return 'Delete Report V2';
     if (pathname === '/update-report') return 'Update Report Status';
+    if (pathname === '/update-report-v2') return 'Update Report Status V2';
     if (pathname === '/datadog-query') return 'Datadog Query';
     return 'Tech Support Tools';
   };
@@ -163,10 +164,10 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
                <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/update-report'}>
-                  <Link href="/update-report">
+                <SidebarMenuButton asChild isActive={pathname === '/update-report-v2'}>
+                  <Link href="/update-report-v2">
                     <FilePenLine />
-                    Update Report Status
+                    Update Report Status V2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

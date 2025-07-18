@@ -80,14 +80,14 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
-        <Link href="/update-report" className="block hover:no-underline">
+        <Link href="/update-report-v2" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
               <div className="p-3 rounded-lg bg-primary/10">
                 <FilePenLine className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Update Report Status</CardTitle>
+                <CardTitle>Update Report Status V2</CardTitle>
                 <CardDescription className="mt-1">
                   Update the status of a report.
                 </CardDescription>
