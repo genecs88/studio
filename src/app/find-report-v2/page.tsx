@@ -22,7 +22,7 @@ import { AlertCircle, Search, Copy, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiKey } from "@/lib/placeholder-data";
 
-export default function FindReportV2Page() {
+export default function FindReportv2Page() {
     const { environments, organizations, apiKeys, apiActions } = useAppData();
 
     // Datadog query state
@@ -257,7 +257,7 @@ export default function FindReportV2Page() {
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold font-headline tracking-tight">
-                    Find Report V2
+                    Find Report v2
                 </h1>
                 <p className="text-muted-foreground">Search Datadog to get a report payload, then use it to find the report.</p>
             </div>
@@ -391,3 +391,5 @@ export default function FindReportV2Page() {
         </div>
     );
 }
+
+    

@@ -22,7 +22,7 @@ import { AlertCircle, Search, Building } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
-export default function TransferOwnershipV2Page() {
+export default function TransferOwnershipv2Page() {
     const { environments, organizations, apiKeys, apiActions } = useAppData();
 
     // Datadog query state
@@ -260,7 +260,7 @@ export default function TransferOwnershipV2Page() {
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold font-headline tracking-tight">
-                    Transfer Ownership V2
+                    Transfer Ownership v2
                 </h1>
                 <p className="text-muted-foreground">Search Datadog to get a report payload, then use it to transfer ownership.</p>
             </div>
@@ -436,3 +436,5 @@ export default function TransferOwnershipV2Page() {
         </div>
     );
 }
+
+    

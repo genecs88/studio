@@ -42,7 +42,7 @@ export default function HomePage() {
                 <Search className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Find Report V2</CardTitle>
+                <CardTitle>Find Report v2</CardTitle>
                 <CardDescription className="mt-1">
                   A duplicated find report tool.
                 </CardDescription>
@@ -57,7 +57,7 @@ export default function HomePage() {
                 <ArrowRightLeft className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Transfer Ownership V2</CardTitle>
+                <CardTitle>Transfer Ownership v2</CardTitle>
                 <CardDescription className="mt-1">
                   Transfer ownership of a report using the Datadog search workflow.
                 </CardDescription>
@@ -72,7 +72,7 @@ export default function HomePage() {
                 <XCircle className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Cancel Report V2</CardTitle>
+                <CardTitle>Cancel Report v2</CardTitle>
                 <CardDescription className="mt-1">
                   Cancel a report using the Datadog search workflow.
                 </CardDescription>
@@ -87,7 +87,7 @@ export default function HomePage() {
                 <Trash2 className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Delete Report V2</CardTitle>
+                <CardTitle>Delete Report v2</CardTitle>
                 <CardDescription className="mt-1">
                   Delete a report using the Datadog search workflow.
                 </CardDescription>
@@ -102,7 +102,7 @@ export default function HomePage() {
                 <FilePenLine className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <CardTitle>Update Report Status V2</CardTitle>
+                <CardTitle>Update Report Status v2</CardTitle>
                 <CardDescription className="mt-1">
                   Update the status of a report.
                 </CardDescription>
@@ -114,3 +114,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

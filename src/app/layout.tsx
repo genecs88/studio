@@ -63,14 +63,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/') return 'Dashboard';
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
-    if (pathname === '/find-report-v2') return 'Find Report V2';
+    if (pathname === '/find-report-v2') return 'Find Report v2';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
-    if (pathname === '/transfer-ownership-v2') return 'Transfer Ownership V2';
+    if (pathname === '/transfer-ownership-v2') return 'Transfer Ownership v2';
     if (pathname === '/cancel-report') return 'Cancel Report';
-    if (pathname === '/cancel-report-v2') return 'Cancel Report V2';
-    if (pathname === '/delete-report-v2') return 'Delete Report V2';
+    if (pathname === '/cancel-report-v2') return 'Cancel Report v2';
+    if (pathname === '/delete-report-v2') return 'Delete Report v2';
     if (pathname === '/update-report') return 'Update Report Status';
-    if (pathname === '/update-report-v2') return 'Update Report Status V2';
+    if (pathname === '/update-report-v2') return 'Update Report Status v2';
     if (pathname === '/datadog-query') return 'Datadog Query';
     return 'Tech Support Tools';
   };
@@ -135,7 +135,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton asChild isActive={pathname === '/find-report-v2'}>
                   <Link href="/find-report-v2">
                     <Search />
-                    Find Report V2
+                    Find Report v2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -143,7 +143,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton asChild isActive={pathname === '/transfer-ownership-v2'}>
                   <Link href="/transfer-ownership-v2">
                     <ArrowRightLeft />
-                    Transfer Ownership V2
+                    Transfer Ownership v2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -151,7 +151,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton asChild isActive={pathname === '/cancel-report-v2'}>
                   <Link href="/cancel-report-v2">
                     <XCircle />
-                    Cancel Report V2
+                    Cancel Report v2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -159,7 +159,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton asChild isActive={pathname === '/delete-report-v2'}>
                   <Link href="/delete-report-v2">
                     <Trash2 />
-                    Delete Report V2
+                    Delete Report v2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -167,7 +167,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton asChild isActive={pathname === '/update-report-v2'}>
                   <Link href="/update-report-v2">
                     <FilePenLine />
-                    Update Report Status V2
+                    Update Report Status v2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -270,3 +270,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    

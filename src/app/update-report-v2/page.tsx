@@ -22,7 +22,7 @@ import { AlertCircle, Search, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-export default function UpdateReportV2Page() {
+export default function UpdateReportv2Page() {
     const { environments, organizations, apiKeys, apiActions } = useAppData();
 
     // Datadog query state
@@ -263,7 +263,7 @@ export default function UpdateReportV2Page() {
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold font-headline tracking-tight">
-                    Update Report Status V2
+                    Update Report Status v2
                 </h1>
                 <p className="text-muted-foreground">Search Datadog to get a report payload, then use it to update the report status.</p>
             </div>
@@ -435,3 +435,5 @@ export default function UpdateReportV2Page() {
         </div>
     );
 }
+
+    

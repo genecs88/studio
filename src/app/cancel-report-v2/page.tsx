@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle, Search, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CancelReportV2Page() {
+export default function CancelReportv2Page() {
     const { environments, organizations, apiKeys, apiActions } = useAppData();
 
     // Datadog query state
@@ -246,7 +246,7 @@ export default function CancelReportV2Page() {
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold font-headline tracking-tight">
-                    Cancel Report V2
+                    Cancel Report v2
                 </h1>
                 <p className="text-muted-foreground">Search Datadog to get a report payload, then use it to cancel the report.</p>
             </div>
@@ -386,3 +386,5 @@ export default function CancelReportV2Page() {
         </div>
     );
 }
+
+    
