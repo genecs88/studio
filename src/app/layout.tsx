@@ -62,6 +62,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/') return 'Dashboard';
     if (pathname.startsWith('/admin')) return 'Admin Management';
     if (pathname === '/find-report') return 'Find Report';
+    if (pathname === '/find-report-v2') return 'Find Report V2';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
     if (pathname === '/cancel-report') return 'Cancel Report';
     if (pathname === '/update-report') return 'Update Report Status';
@@ -130,6 +131,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   <Link href="/find-report">
                     <Search />
                     Find Report
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/find-report-v2'}>
+                  <Link href="/find-report-v2">
+                    <Search />
+                    Find Report V2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

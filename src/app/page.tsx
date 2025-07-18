@@ -50,6 +50,21 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
+         <Link href="/find-report-v2" className="block hover:no-underline">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Search className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Find Report V2</CardTitle>
+                <CardDescription className="mt-1">
+                  A duplicated find report tool.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link href="/transfer-ownership" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
