@@ -131,14 +131,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/find-report'}>
-                  <Link href="/find-report">
-                    <Search />
-                    Find Report
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/find-report-v2'}>
                   <Link href="/find-report-v2">
                     <Search />
