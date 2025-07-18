@@ -192,12 +192,11 @@ export default function FindReportV2Page() {
         setFindResponse(null);
         setConstructedPostUrl("");
 
-        // Determine environment and organization for API call
-        const targetEnvName = env === 'prod' ? 'external.radpair.com' : 'staging';
-        const environment = environments.find(e => e.name.toLowerCase() === targetEnvName.toLowerCase());
+        // Find the Environment object that matches the name from the input field.
+        const environment = environments.find(e => e.name.toLowerCase() === env.toLowerCase());
 
         if (!environment) {
-            setFindResponse(`Error: Environment details for '${targetEnvName}' not found.`);
+            setFindResponse(`Error: Environment configuration for '${env}' not found in Admin Management.`);
             setIsFindLoading(false);
             return;
         }
@@ -218,7 +217,7 @@ export default function FindReportV2Page() {
             return;
         }
 
-        // Find the organization that matches the parent_org from the logs
+        // Find the organization that matches the parent_org from the logs within the correct environment.
         const organization = organizations.find(o => o.name.toLowerCase() === extractedParentOrg.toLowerCase() && o.environmentId === environment.id);
 
         if (!organization) {
