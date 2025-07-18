@@ -40,7 +40,7 @@ export default function TransferOwnershipV2Page() {
     const [newOwnerEmail, setNewOwnerEmail] = useState("");
     const [forceChecked, setForceChecked] = useState(false);
     const [jsonPayload, setJsonPayload] = useState("");
-    const [transferResponse, setTransferResponse] = useState<any>(null);
+    const [transferResponse, setTransferResponse] = useState<any | null>(null);
     const [isTransferLoading, setIsTransferLoading] = useState(false);
     const [constructedPostUrl, setConstructedPostUrl] = useState("");
     
@@ -49,12 +49,16 @@ export default function TransferOwnershipV2Page() {
     // Automatically update the JSON payload when identifiers or other fields change
     useEffect(() => {
         if (extractedIdentifiers) {
-            const payload = { 
+            const payload: any = { 
                 ...extractedIdentifiers,
-                email: newOwnerEmail,
                 force: forceChecked,
             };
+            if (newOwnerEmail) {
+                payload.email = newOwnerEmail;
+            }
             setJsonPayload(JSON.stringify(payload, null, 2));
+        } else {
+            setJsonPayload("");
         }
     }, [extractedIdentifiers, newOwnerEmail, forceChecked]);
 
@@ -333,7 +337,7 @@ export default function TransferOwnershipV2Page() {
                 <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="new-owner-email">New Owner Email</Label>
+                            <Label htmlFor="new-owner-email">New Owner Email (optional)</Label>
                             <Input 
                                 id="new-owner-email" 
                                 type="email" 
@@ -417,7 +421,7 @@ export default function TransferOwnershipV2Page() {
             </div>
             
             <div className="mt-2">
-                <Button onClick={handleTransfer} disabled={isTransferLoading || !jsonPayload || !newOwnerEmail} size="lg">
+                <Button onClick={handleTransfer} disabled={isTransferLoading || !jsonPayload} size="lg">
                     {isTransferLoading ? 'Transferring...' : 'Transfer Ownership'}
                 </Button>
             </div>
