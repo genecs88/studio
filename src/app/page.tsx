@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wrench, Search, ArrowRightLeft, XCircle, FilePenLine } from 'lucide-react';
+import { Wrench, Search, ArrowRightLeft, XCircle, FilePenLine, Trash2 } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -105,6 +105,21 @@ export default function HomePage() {
                 <CardTitle>Cancel Report V2</CardTitle>
                 <CardDescription className="mt-1">
                   Cancel a report using the Datadog search workflow.
+                </CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/delete-report-v2" className="block hover:no-underline">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Trash2 className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Delete Report V2</CardTitle>
+                <CardDescription className="mt-1">
+                  Delete a report using the Datadog search workflow.
                 </CardDescription>
               </div>
             </CardHeader>

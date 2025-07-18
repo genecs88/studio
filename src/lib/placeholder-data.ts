@@ -180,4 +180,5 @@ export const apiActions: ApiAction[] = [
     { id: "action_4", key: "transfer ownership", value: "/integrations/reports/transfer-ownership", environmentId: "env_1", createdAt: "2024-06-21" },
     { id: "action_5", key: "CANCEL", value: "/integrations/reports/cancel", environmentId: "env_1", createdAt: "2024-07-25" },
     { id: "action_6", key: "UPDATE", value: "/integrations/reports/status-update", environmentId: "env_1", createdAt: "2024-07-26" },
+    { id: "action_7", key: "DELETE", value: "/integrations/reports/delete", environmentId: "env_1", createdAt: "2024-07-27" },
 ];
