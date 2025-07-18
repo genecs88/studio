@@ -296,7 +296,7 @@ export default function FindReportV2Page() {
 
             {/* Datadog Results */}
             {searchCompleted && (
-                 <>
+                 <div className="flex flex-col gap-4">
                     {foundTraceId && (
                         <Alert>
                             <Search className="h-4 w-4" />
@@ -316,7 +316,7 @@ export default function FindReportV2Page() {
                             </AlertDescription>
                         </Alert>
                     )}
-                </>
+                </div>
             )}
 
             {/* Step 2: Find Report */}
