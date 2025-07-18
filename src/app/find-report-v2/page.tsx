@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, Search, Copy } from "lucide-react";
+import { AlertCircle, Search, Copy, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiKey } from "@/lib/placeholder-data";
 
@@ -307,23 +307,15 @@ export default function FindReportV2Page() {
                         </Alert>
                     )}
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Extracted Parent Org</CardTitle>
-                            <CardDescription>
-                                The value of the "parent_org" key from the first log found in the trace.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Textarea
-                                readOnly
-                                value={extractedParentOrg}
-                                rows={2}
-                                className="font-mono text-sm"
-                                placeholder={isDatadogLoading ? "Searching..." : "Parent org will appear here."}
-                            />
-                        </CardContent>
-                    </Card>
+                    {extractedParentOrg && extractedParentOrg !== 'not found' && (
+                        <Alert>
+                            <Building className="h-4 w-4" />
+                            <AlertTitle>Parent Org Found</AlertTitle>
+                            <AlertDescription>
+                                Found parent_org: <span className="font-mono bg-muted px-1 py-0.5 rounded">{extractedParentOrg}</span>.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </>
             )}
 
