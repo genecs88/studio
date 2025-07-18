@@ -34,7 +34,6 @@ export default function FindReportV2Page() {
     const [datadogError, setDatadogError] = useState<string | null>(null);
     const [extractedIdentifiers, setExtractedIdentifiers] = useState("");
     const [extractedParentOrg, setExtractedParentOrg] = useState("");
-    const [extractedOrgPath, setExtractedOrgPath] = useState("");
     const [searchTimestamps, setSearchTimestamps] = useState<{ from: string; to: string } | null>(null);
     const [foundTraceId, setFoundTraceId] = useState<string | null>(null);
     const [searchCompleted, setSearchCompleted] = useState(false);
@@ -63,7 +62,6 @@ export default function FindReportV2Page() {
         setDatadogError(null);
         setExtractedIdentifiers("");
         setExtractedParentOrg("");
-        setExtractedOrgPath("");
         setSearchTimestamps(null);
         setFoundTraceId(null);
         setSearchCompleted(false);
@@ -83,7 +81,6 @@ export default function FindReportV2Page() {
         setDatadogResponse(null);
         setExtractedIdentifiers("");
         setExtractedParentOrg("");
-        setExtractedOrgPath("");
         setFoundTraceId(null);
         setSearchCompleted(false);
         setJsonPayload("");
@@ -176,7 +173,6 @@ export default function FindReportV2Page() {
             }
 
             setExtractedParentOrg(parentOrgValue || "not found");
-            setExtractedOrgPath(orgPathValue ? JSON.stringify(orgPathValue, null, 2) : "not found");
 
             if (!identifiersFound) {
                 setExtractedIdentifiers("not found");
@@ -327,24 +323,6 @@ export default function FindReportV2Page() {
                                 rows={2}
                                 className="font-mono text-sm"
                                 placeholder={isDatadogLoading ? "Searching..." : "Parent org will appear here."}
-                            />
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Extracted Org Path</CardTitle>
-                             <CardDescription>
-                                The "org_path" value from the same log as the parent org.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Textarea
-                                readOnly
-                                value={extractedOrgPath}
-                                rows={4}
-                                className="font-mono text-sm"
-                                placeholder={isDatadogLoading ? "Searching..." : "Org path will appear here."}
                             />
                         </CardContent>
                     </Card>
