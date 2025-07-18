@@ -35,21 +35,6 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
-        <Link href="/find-report" className="block hover:no-underline">
-          <Card className="hover:border-primary transition-colors h-full">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Search className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Find Report</CardTitle>
-                <CardDescription className="mt-1">
-                  Construct and send POST requests to find reports.
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
          <Link href="/find-report-v2" className="block hover:no-underline">
           <Card className="hover:border-primary transition-colors h-full">
             <CardHeader className="flex flex-row items-center gap-4">
@@ -60,21 +45,6 @@ export default function HomePage() {
                 <CardTitle>Find Report V2</CardTitle>
                 <CardDescription className="mt-1">
                   A duplicated find report tool.
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link href="/cancel-report" className="block hover:no-underline">
-          <Card className="hover:border-primary transition-colors h-full">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <XCircle className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Cancel Report</CardTitle>
-                <CardDescription className="mt-1">
-                  Cancel a report that is in progress.
                 </CardDescription>
               </div>
             </CardHeader>

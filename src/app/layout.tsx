@@ -147,14 +147,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/cancel-report'}>
-                  <Link href="/cancel-report">
-                    <XCircle />
-                    Cancel Report
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/cancel-report-v2'}>
                   <Link href="/cancel-report-v2">
                     <XCircle />
