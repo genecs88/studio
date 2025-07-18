@@ -122,7 +122,6 @@ export default function FindReportV2Page() {
 
             let identifiersFound = false;
             let identifiersObj: any = null;
-            let parentOrgFound = false;
             let orgPathValue: string[] | null = null;
             let parentOrgValue: string | null = null;
 
@@ -154,7 +153,6 @@ export default function FindReportV2Page() {
                     const attributes = event.attributes?.attributes;
                     if (attributes && attributes.parent_org) {
                         parentOrgValue = attributes.parent_org;
-                        parentOrgFound = true;
 
                         if (attributes.org_path) {
                             orgPathValue = attributes.org_path;
@@ -323,24 +321,6 @@ export default function FindReportV2Page() {
                                 rows={2}
                                 className="font-mono text-sm"
                                 placeholder={isDatadogLoading ? "Searching..." : "Parent org will appear here."}
-                            />
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Extracted Report Payload</CardTitle>
-                            <CardDescription>
-                                Key-value pairs from the first log message containing "Identifiers:". This will be used in Step 2.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Textarea
-                                readOnly
-                                value={extractedIdentifiers}
-                                rows={10}
-                                className="font-mono text-sm"
-                                placeholder={isDatadogLoading ? "Searching..." : "Payload will appear here."}
                             />
                         </CardContent>
                     </Card>
