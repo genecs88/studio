@@ -64,6 +64,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     if (pathname === '/find-report') return 'Find Report';
     if (pathname === '/find-report-v2') return 'Find Report V2';
     if (pathname === '/transfer-ownership') return 'Transfer Ownership';
+    if (pathname === '/transfer-ownership-v2') return 'Transfer Ownership V2';
     if (pathname === '/cancel-report') return 'Cancel Report';
     if (pathname === '/update-report') return 'Update Report Status';
     if (pathname === '/datadog-query') return 'Datadog Query';
@@ -147,6 +148,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
                   <Link href="/transfer-ownership">
                     <ArrowRightLeft />
                     Transfer Ownership
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/transfer-ownership-v2'}>
+                  <Link href="/transfer-ownership-v2">
+                    <ArrowRightLeft />
+                    Transfer Ownership V2
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
